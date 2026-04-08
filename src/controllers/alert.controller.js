@@ -1,0 +1,408 @@
+/**
+ * Archivo: alert.controller.js
+ * Descripción: lógica de alertas.
+ */
+
+const Alert = require('../models/Alert');
+
+exports.createAlert = async (req, res) => {
+   try {
+      const { description, address } = req.body;
+
+      // Validación
+      if (!description || !address) {
+         return res.status(400).json({
+            message: 'description y address son obligatorios'
+         });
+      }
+
+      const alert = new Alert({
+         description,
+         address,
+         createdBy: req.user.id
+      });
+
+      await alert.save();
+
+      res.status(201).json({
+         message: 'Alerta creada correctamente',
+         alert
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.getAlerts = async (req, res) => {
+   try {
+      const { status, from, to } = req.query;
+      const validStatuses = ['pending', 'attended', 'deleted'];
+
+      // Validación de status
+      if (status && !validStatuses.includes(status)) {
+         return res.status(400).json({
+            message: 'Status inválido. Valores permitidos: pending, attended, deleted'
+         });
+      }
+
+      let filter = {};
+
+      // Filtro por status
+      if (status) {
+         filter.status = status;
+      }
+
+      // Filtro por fechas
+      if (from || to) {
+         filter.createdAt = {};
+
+         if (from) {
+            filter.createdAt.$gte = new Date(from);
+         }
+
+         if (to) {
+            const toDate = new Date(to);
+            toDate.setHours(23, 59, 59, 999);
+            filter.createdAt.$lte = toDate;
+         }
+      }
+
+      const alerts = await Alert.find(filter)
+         .populate('createdBy', 'email role') // opcional pero útil
+         .sort({ createdAt: -1 });
+
+      res.status(200).json({
+         count: alerts.length,
+         alerts
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.updateAlertStatus = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const validStatuses = ['pending', 'attended', 'deleted'];
+
+      // Validación
+      if (!status || !validStatuses.includes(status)) {
+         return res.status(400).json({
+            message: 'Status inválido. Valores permitidos: pending, attended, deleted'
+         });
+      }
+
+      const alert = await Alert.findByIdAndUpdate(
+         id,
+         { status },
+         { new: true, runValidators: true }
+      );
+
+      if (!alert) {
+         return res.status(404).json({
+            message: 'Alerta no encontrada'
+         });
+      }
+
+      alert.status = status;
+      await alert.save();
+
+      res.status(200).json({
+         message: 'Estado actualizado correctamente',
+         alert
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.confirmAlert = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const alert = await Alert.findById(id);
+
+      if (!alert) {
+         return res.status(404).json({
+            message: 'Alerta no encontrada'
+         });
+      }
+
+      // No permitir si está eliminada
+      if (alert.status === 'deleted') {
+         return res.status(400).json({
+            message: 'No se puede confirmar una alerta eliminada'
+         });
+      }
+
+      // Comprobar si ya confirmó
+      const alreadyConfirmed = alert.confirmations.some(
+         user => user.toString() === userId
+      );
+
+      if (alreadyConfirmed) {
+         return res.status(400).json({
+            message: 'Ya has confirmado esta alerta'
+         });
+      }
+
+      // Quitar de discards si estaba
+      alert.discards = alert.discards.filter(
+         user => user.toString() !== userId
+      );
+
+      // Añadir a confirmations
+      alert.confirmations.push(userId);
+
+      await alert.save();
+
+      res.status(200).json({
+         message: 'Alerta confirmada',
+         confirmations: alert.confirmations.length,
+         confirmedByUser: true
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.discardAlert = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const alert = await Alert.findById(id);
+
+      if (!alert) {
+         return res.status(404).json({
+            message: 'Alerta no encontrada'
+         });
+      }
+
+      // No permitir si está eliminada
+      if (alert.status === 'deleted') {
+         return res.status(400).json({
+            message: 'No se puede descartar una alerta eliminada'
+         });
+      }
+
+      // Comprobar si ya descartó
+      const alreadyDiscarded = alert.discards.some(
+         user => user.toString() === userId
+      );
+
+      if (alreadyDiscarded) {
+         return res.status(400).json({
+            message: 'Ya has descartado esta alerta'
+         });
+      }
+
+      // Quitar de confirmations si estaba
+      alert.confirmations = alert.confirmations.filter(
+         user => user.toString() !== userId
+      );
+
+      // Añadir a discards
+      alert.discards.push(userId);
+
+      await alert.save();
+
+      res.status(200).json({
+         message: 'Alerta descartada',
+         discards: alert.discards.length,
+         discardedByUser: true
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.removeConfirmation = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const alert = await Alert.findById(id);
+
+      if (!alert) {
+         return res.status(404).json({
+            message: 'Alerta no encontrada'
+         });
+      }
+
+      // Comprobar si había confirmado
+      const wasConfirmed = alert.confirmations.some(
+         user => user.toString() === userId
+      );
+
+      if (!wasConfirmed) {
+         return res.status(400).json({
+            message: 'No habías confirmado esta alerta'
+         });
+      }
+
+      // Eliminar confirmación
+      alert.confirmations = alert.confirmations.filter(
+         user => user.toString() !== userId
+      );
+
+      await alert.save();
+
+      res.status(200).json({
+         message: 'Confirmación eliminada',
+         confirmations: alert.confirmations.length,
+         confirmedByUser: false
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.removeDiscard = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const userId = req.user.id;
+
+      const alert = await Alert.findById(id);
+
+      if (!alert) {
+         return res.status(404).json({
+            message: 'Alerta no encontrada'
+         });
+      }
+
+      // Comprobar si había descartado
+      const wasDiscarded = alert.discards.some(
+         user => user.toString() === userId
+      );
+
+      if (!wasDiscarded) {
+         return res.status(400).json({
+            message: 'No habías descartado esta alerta'
+         });
+      }
+
+      // Eliminar descarte
+      alert.discards = alert.discards.filter(
+         user => user.toString() !== userId
+      );
+
+      await alert.save();
+
+      res.status(200).json({
+         message: 'Descarte eliminado',
+         discards: alert.discards.length,
+         discardedByUser: false
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.deleteAlert = async (req, res) => {
+   try {
+      const { id } = req.params;
+
+      const alert = await Alert.findById(id);
+
+      if (!alert) {
+         return res.status(404).json({
+            message: 'Alerta no encontrada'
+         });
+      }
+
+      if (alert.status !== 'deleted') {
+         return res.status(400).json({
+            message: 'Solo se pueden eliminar definitivamente alertas ya marcadas como deleted'
+         });
+      }
+
+      await Alert.findByIdAndDelete(id);
+
+      res.status(200).json({
+         message: 'Alerta eliminada definitivamente'
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.getAlertById = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const userId = req.user?.id; // opcional si no hay auth
+
+      const alert = await Alert.findById(id)
+         .populate('createdBy', 'email role')
+         .populate('confirmations', '_id')
+         .populate('discards', '_id');
+
+      if (!alert) {
+         return res.status(404).json({
+            message: 'Alerta no encontrada'
+         });
+      }
+
+      // Comprobar estado del usuario actual
+      const confirmedByUser = alert.confirmations.some(
+         user => user._id.toString() === userId
+      );
+
+      const discardedByUser = alert.discards.some(
+         user => user._id.toString() === userId
+      );
+
+      res.status(200).json({
+         alert,
+         stats: {
+            confirmations: alert.confirmations.length,
+            discards: alert.discards.length
+         },
+         userInteraction: {
+            confirmedByUser,
+            discardedByUser
+         }
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
