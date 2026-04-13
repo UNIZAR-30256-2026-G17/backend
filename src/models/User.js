@@ -19,8 +19,7 @@ const userSchema = new mongoose.Schema({
    },
    role: {
       type: String,
-      enum: ['citizen', 'police', 'admin'],
-      default: 'citizen'
+      enum: ['police', 'admin'],
    },
    badge_number: {
       type: Number,

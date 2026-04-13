@@ -9,8 +9,10 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 
-const authRoutes = require('./routes/auth.routes');
 const alertRoutes = require('./routes/alert.routes');
+const authRoutes = require('./routes/auth.routes');
+const crimeRoutes = require('./routes/crime.routes');
+const userRoutes = require('./routes/user.routes');
 
 const app = express();
 
@@ -25,15 +27,9 @@ app.get('/', (req, res) => {
    res.send('API funcionando');
 });
 
-// Ruta de prueba
-app.get('/api/health', (req, res) => {
-   res.status(200).json({
-      ok: true,
-      message: 'Backend funcionando correctamente'
-   });
-});
-
-app.use('/api/auth', authRoutes);
 app.use('/api/alerts', alertRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/crimes', crimeRoutes);
+app.use('/api/users', userRoutes);
 
 module.exports = app;

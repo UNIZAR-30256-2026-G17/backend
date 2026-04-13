@@ -19,7 +19,7 @@ exports.register = async (req, res) => {
       }
 
       // Validación de rol
-      if (!['citizen', 'police', 'admin'].includes(role)) {
+      if (!['police', 'admin'].includes(role)) {
          return res.status(400).json({
             message: 'Rol inválido'
          });
@@ -36,6 +36,19 @@ exports.register = async (req, res) => {
          return res.status(400).json({
             message: 'admin no debe tener badge_number'
          });
+      }
+
+      if (role === 'police') {
+         const existingBadge = await User.findOne({
+            role: 'police',
+            badge_number: badge_number
+         });
+
+         if (existingBadge) {
+            return res.status(400).json({
+               message: 'Ya existe un policía con ese badge_number'
+            });
+         }
       }
 
       // Verificar usuario existente
