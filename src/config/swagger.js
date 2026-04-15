@@ -42,6 +42,16 @@ const options = {
                   }
                }
             },
+            LoginAnonymousInput: {
+               type: 'object',
+               required: ['deviceId'],
+               properties: {
+                  deviceId: {
+                     type: 'string',
+                     example: 'device-12345'
+                  }
+               }
+            },
             RegisterInput: {
                type: 'object',
                required: ['email', 'password', 'role'],

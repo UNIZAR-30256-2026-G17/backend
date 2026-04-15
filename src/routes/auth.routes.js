@@ -57,6 +57,29 @@ router.post('/login', authController.login);
 
 /**
  * @swagger
+ * /auth/login/anonymous:
+ *   post:
+ *     summary: Iniciar sesión como usuario anónimo
+ *     description: Devuelve un token JWT.
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LoginAnonymousInput'
+ *     responses:
+ *       200:
+ *         description: Login anónimo correcto
+ *       400:
+ *         description: Credenciales inválidas o datos faltantes
+ *       500:
+ *         description: Error en el servidor
+ */
+router.post('/login/anonymous', authController.anonymousLogin);
+
+/**
+ * @swagger
  * /auth/me:
  *   get:
  *     summary: Obtener usuario autenticado

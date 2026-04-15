@@ -6,6 +6,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { v4: uuidv4 } = require('uuid');
 
 exports.register = async (req, res) => {
    try {
@@ -133,6 +134,39 @@ exports.login = async (req, res) => {
       res.status(200).json({
          message: 'Login correcto',
          token
+      });
+
+   } catch (error) {
+      console.error(error);
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+exports.anonymousLogin = async (req, res) => {
+   try {
+      const { deviceId } = req.body;
+
+      // Si no nos dan un id por defecto, lo generamos
+      const id = deviceId || uuidv4();
+
+      const token = jwt.sign(
+         {
+            id,
+            role: 'anonymous'
+         },
+         process.env.JWT_SECRET,
+         { expiresIn: '30d' }
+      );
+
+      res.status(200).json({
+         message: 'Login anónimo correcto',
+         token,
+         user: {
+            id,
+            role: 'anonymous'
+         }
       });
 
    } catch (error) {
