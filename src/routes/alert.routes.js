@@ -29,7 +29,7 @@ const roleMiddleware = require('../middlewares/role.middleware');
  *       201:
  *         description: Alerta creada correctamente
  *       400:
- *         description: Datos inválidos
+ *         description: Datos inválidos o error al geocodificar la dirección
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  *       500:
