@@ -22,20 +22,17 @@ const alertSchema = new mongoose.Schema({
       default: 'pending'
    },
    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      type: mongoose.Schema.Types.String,
       required: true
    },
    confirmations: [
       {
-         type: mongoose.Schema.Types.ObjectId,
-         ref: 'User'
+         type: mongoose.Schema.Types.String,
       }
    ],
    discards: [
       {
-         type: mongoose.Schema.Types.ObjectId,
-         ref: 'User'
+         type: mongoose.Schema.Types.String,
       }
    ]
 }, {

@@ -40,6 +40,8 @@ exports.createAlert = async (req, res) => {
 exports.getAlerts = async (req, res) => {
    try {
       const { status, from, to } = req.query;
+      const userId = req.user?.id;
+
       const validStatuses = ['pending', 'attended', 'deleted'];
 
       // Validación de status
@@ -72,12 +74,28 @@ exports.getAlerts = async (req, res) => {
       }
 
       const alerts = await Alert.find(filter)
-         .populate('createdBy', 'email role') // opcional pero útil
          .sort({ createdAt: -1 });
+
+      // Enriquecer la respuesta para saber si el usuario ya la ya confirmado o descartado
+      const enriched = alerts.map(alert => {
+         const confirmedByMe = alert.confirmations?.some(
+            u => u.toString() === userId
+         );
+
+         const discardedByMe = alert.discards?.some(
+            u => u.toString() === userId
+         );
+
+         return {
+            ...alert.toObject(),
+            confirmedByMe,
+            discardedByMe
+         };
+      });
 
       res.status(200).json({
          count: alerts.length,
-         alerts
+         alerts: enriched
       });
 
    } catch (error) {
@@ -368,7 +386,6 @@ exports.getAlertById = async (req, res) => {
       const userId = req.user?.id; // opcional si no hay auth
 
       const alert = await Alert.findById(id)
-         .populate('createdBy', 'email role')
          .populate('confirmations', '_id')
          .populate('discards', '_id');
 
