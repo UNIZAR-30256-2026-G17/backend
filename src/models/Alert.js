@@ -33,13 +33,13 @@ const alertSchema = new mongoose.Schema({
       default: 'pending'
    },
    confirmations: {
-      type: Number,
-      default: 0
+      type: [String],
+      default: []
    },
    discards: {
-      type: Number,
-      default: 0
-   }
+      type: [String],
+      default: []
+   },
 }, {
    timestamps: true,
    collection: 'ALERTS'

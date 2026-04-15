@@ -34,8 +34,8 @@ exports.createAlert = async (req, res) => {
             type: 'Point',
             coordinates: [coordinates.lon, coordinates.lat] // GeoJSON: [lng, lat]
          },
-         confirmations: 0,
-         discards: 0,
+         confirmations: [],
+         discards: [],
       });
 
       await alert.save();
@@ -55,7 +55,7 @@ exports.createAlert = async (req, res) => {
 
 exports.getAlerts = async (req, res) => {
    try {
-      const { status, from, to } = req.query;
+      const { status, from, to, userId } = req.query;
       const validStatuses = ['pending', 'attended', 'deleted'];
 
       // Validación de status
@@ -90,9 +90,15 @@ exports.getAlerts = async (req, res) => {
       const alerts = await Alert.find(filter)
          .sort({ createdAt: -1 });
 
+      const enriched = alerts.map(alert => ({
+         ...alert.toObject(),
+         confirmedByMe: alert.confirmations.includes(userId),
+         discardedByMe: alert.discards.includes(userId),
+      }));
+
       res.status(200).json({
          count: alerts.length,
-         alerts
+         enriched
       });
 
    } catch (error) {
@@ -148,7 +154,7 @@ exports.updateAlertStatus = async (req, res) => {
 exports.confirmAlert = async (req, res) => {
    try {
       const { id } = req.params;
-      const userId = req.user.id;
+      const { userId } = req.body;
 
       const alert = await Alert.findById(id);
 
@@ -165,14 +171,27 @@ exports.confirmAlert = async (req, res) => {
          });
       }
 
+      // No permitir si el usuario ya la había confirmado
+      if (alert.confirmations.includes(userId)) {
+         return res.status(200).json({
+            message: 'Ya confirmada',
+            confirmations: alert.confirmations.length,
+            discards: alert.discards.length,
+         });
+      }
+
+      // Si la había descartado, lo borramos
+      alert.discards = alert.discards.filter(id => id !== userId);
+
       // Añadimos la confirmation
-      alert.confirmations += 1;
+      alert.confirmations.push(userId);
 
       await alert.save();
 
       res.status(200).json({
          message: 'Alerta confirmada',
-         confirmations: alert.confirmations,
+         confirmations: alert.confirmations.length,
+         discards: alert.discards.length,
       });
 
    } catch (error) {
@@ -186,6 +205,7 @@ exports.confirmAlert = async (req, res) => {
 exports.discardAlert = async (req, res) => {
    try {
       const { id } = req.params;
+      const { userId } = req.body;
 
       const alert = await Alert.findById(id);
 
@@ -202,14 +222,27 @@ exports.discardAlert = async (req, res) => {
          });
       }
 
+      // No permitir si el usuario ya la había descartado
+      if (alert.discards.includes(userId)) {
+         return res.status(200).json({
+            message: 'Ya descartada',
+            discards: alert.discards.length,
+            confirmations: alert.confirmations.length
+         });
+      }
+
+      // Si la había confirmado, lo borramos
+      alert.confirmations = alert.confirmations.filter(id => id !== userId);
+
       // Añadir la discard
-      alert.discards += 1;
+      alert.discards.push(userId);
 
       await alert.save();
 
       res.status(200).json({
          message: 'Alerta descartada',
-         discards: alert.discards,
+         discards: alert.discards.length,
+         confirmations: alert.confirmations.length,
       });
 
    } catch (error) {
@@ -269,8 +302,8 @@ exports.getAlertById = async (req, res) => {
       res.status(200).json({
          alert,
          stats: {
-            confirmations: alert.confirmations,
-            discards: alert.discards,
+            confirmations: alert.confirmations.length,
+            discards: alert.discards.length,
          },
       });
 

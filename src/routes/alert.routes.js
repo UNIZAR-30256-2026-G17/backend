@@ -61,7 +61,13 @@ router.post('/', alertController.createAlert);
  *           type: string
  *           format: date
  *         required: false
- *         description: Fecha final
+ *         description: Fecha 
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID del usuario para marcar confirmaciones/descartes
  *     responses:
  *       200:
  *         description: Lista de alertas obtenida correctamente
@@ -150,9 +156,9 @@ router.patch('/:id', authMiddleware, roleMiddleware('admin', 'police'), alertCon
  *         description: Identificador de la alerta
  *     responses:
  *       200:
- *         description: Alerta confirmada correctamente
+ *         description: Alerta confirmada correctamente o Ya confirmada
  *       400:
- *         description: Alerta inválida
+ *         description: No se puede confirmar una alerta eliminada
  *       404:
  *         description: Alerta no encontrada
  *       500:
@@ -176,9 +182,9 @@ router.post('/:id/confirmations', alertController.confirmAlert);
  *         description: Identificador de la alerta
  *     responses:
  *       200:
- *         description: Alerta descartada correctamente
+ *         description: Alerta descartada correctamente o Ya descartada
  *       400:
- *         description: Alerta inválida
+ *         description: No se puede descartar una alerta eliminada
  *       404:
  *         description: Alerta no encontrada
  *       500:
