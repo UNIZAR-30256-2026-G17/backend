@@ -14,6 +14,7 @@ const authRoutes = require('./routes/auth.routes');
 const crimeRoutes = require('./routes/crime.routes');
 const userRoutes = require('./routes/user.routes');
 const beatICRoutes = require('./routes/beatIC.routes');
+const districtICRoutes = require('./routes/districtIC.routes');
 
 const app = express();
 
@@ -33,5 +34,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/crimes', crimeRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/ic_beat', beatICRoutes);
+app.use('/api/ic_district', districtICRoutes);
 
 module.exports = app;

@@ -119,6 +119,10 @@ const options = {
          {
             name: 'BeatsICs',
             description: 'Endpoints de ICs por Beat'
+         },
+         {
+            name: 'DistrictsICs',
+            description: 'Endpoints de ICs por Distrito'
          }
       ]
    },
