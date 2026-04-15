@@ -30,7 +30,7 @@ const options = {
          schemas: {
             LoginInput: {
                type: 'object',
-               required: ['email', 'password'],
+               required: ['email', 'password', 'role'],
                properties: {
                   email: {
                      type: 'string',
@@ -39,6 +39,11 @@ const options = {
                   password: {
                      type: 'string',
                      example: '123456'
+                  },
+                  role: {
+                     type: 'string',
+                     enum: ['admin', 'police'],
+                     example: 'admin'
                   }
                }
             },

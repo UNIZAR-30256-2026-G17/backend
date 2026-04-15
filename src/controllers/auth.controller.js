@@ -93,27 +93,32 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
    try {
-      const { email, password } = req.body;
+      const { email, password, role } = req.body;
 
       // Validación básica
-      if (!email || !password) {
+      if (!email || !password || !role) {
          return res.status(400).json({
-            message: 'Email y contraseña son obligatorios'
+            message: 'Email, contraseña y role son obligatorios'
          });
       }
 
       // Buscar usuario
       const user = await User.findOne({ email });
-
       if (!user) {
          return res.status(400).json({
             message: 'Credenciales inválidas'
          });
       }
 
+      // Comprobar rol
+      if (role && user.role !== role) {
+         return res.status(403).json({
+            message: 'No tienes permisos para acceder desde este login'
+         });
+      }
+
       // Comparar contraseña
       const isMatch = await bcrypt.compare(password, user.password);
-
       if (!isMatch) {
          return res.status(400).json({
             message: 'Credenciales inválidas'
