@@ -86,7 +86,6 @@ exports.getAlerts = async (req, res) => {
       }
 
       const alerts = await Alert.find(filter)
-         .populate('createdBy', 'email role') // opcional pero útil
          .sort({ createdAt: -1 });
 
       res.status(200).json({
@@ -382,7 +381,6 @@ exports.getAlertById = async (req, res) => {
       const userId = req.user?.id; // opcional si no hay auth
 
       const alert = await Alert.findById(id)
-         .populate('createdBy', 'email role')
          .populate('confirmations', '_id')
          .populate('discards', '_id');
 
