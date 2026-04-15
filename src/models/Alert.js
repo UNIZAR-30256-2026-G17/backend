@@ -32,18 +32,14 @@ const alertSchema = new mongoose.Schema({
       enum: ['pending', 'attended', 'deleted'],
       default: 'pending'
    },
-   confirmations: [
-      {
-         type: mongoose.Schema.Types.ObjectId,
-         ref: 'User'
-      }
-   ],
-   discards: [
-      {
-         type: mongoose.Schema.Types.ObjectId,
-         ref: 'User'
-      }
-   ]
+   confirmations: {
+      type: Number,
+      default: 0
+   },
+   discards: {
+      type: Number,
+      default: 0
+   }
 }, {
    timestamps: true,
    collection: 'ALERTS'

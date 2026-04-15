@@ -17,8 +17,6 @@ const roleMiddleware = require('../middlewares/role.middleware');
  *     summary: Crear una alerta
  *     description: Crea una nueva alerta con estado inicial pending.
  *     tags: [Alerts]
- *     security:
- *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -30,8 +28,6 @@ const roleMiddleware = require('../middlewares/role.middleware');
  *         description: Alerta creada correctamente
  *       400:
  *         description: Datos inválidos o error al geocodificar la dirección
- *       401:
- *         description: Token no proporcionado, inválido o expirado
  *       500:
  *         description: Error en el servidor
  */
@@ -44,8 +40,6 @@ router.post('/', alertController.createAlert);
  *     summary: Obtener todas las alertas
  *     description: Devuelve la lista de alertas del sistema con filtros opcionales.
  *     tags: [Alerts]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: status
@@ -73,8 +67,6 @@ router.post('/', alertController.createAlert);
  *         description: Lista de alertas obtenida correctamente
  *       400:
  *         description: Parámetros inválidos
- *       401:
- *         description: Token no proporcionado, inválido o expirado
  *       500:
  *         description: Error en el servidor
  */
@@ -87,8 +79,6 @@ router.get('/', alertController.getAlerts);
  *     summary: Obtener una alerta por ID
  *     description: Devuelve la información detallada de una alerta.
  *     tags: [Alerts]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -99,14 +89,12 @@ router.get('/', alertController.getAlerts);
  *     responses:
  *       200:
  *         description: Alerta obtenida correctamente
- *       401:
- *         description: Token no proporcionado, inválido o expirado
  *       404:
  *         description: Alerta no encontrada
  *       500:
  *         description: Error en el servidor
  */
-router.get('/:id', authMiddleware, alertController.getAlertById);
+router.get('/:id', alertController.getAlertById);
 
 /**
  * @swagger
@@ -153,8 +141,6 @@ router.patch('/:id', authMiddleware, roleMiddleware('admin', 'police'), alertCon
  *     summary: Confirmar una alerta
  *     description: Añade una confirmación del usuario autenticado a la alerta.
  *     tags: [Alerts]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -166,45 +152,13 @@ router.patch('/:id', authMiddleware, roleMiddleware('admin', 'police'), alertCon
  *       200:
  *         description: Alerta confirmada correctamente
  *       400:
- *         description: Ya confirmada o alerta inválida
- *       401:
- *         description: Token no proporcionado, inválido o expirado
+ *         description: Alerta inválida
  *       404:
  *         description: Alerta no encontrada
  *       500:
  *         description: Error en el servidor
  */
-router.post('/:id/confirmations', authMiddleware, alertController.confirmAlert);
-
-/**
- * @swagger
- * /alerts/{id}/confirmations:
- *   delete:
- *     summary: Eliminar confirmación de una alerta
- *     description: Elimina la confirmación del usuario autenticado.
- *     tags: [Alerts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Identificador de la alerta
- *     responses:
- *       200:
- *         description: Confirmación eliminada correctamente
- *       400:
- *         description: El usuario no había confirmado la alerta
- *       401:
- *         description: Token no proporcionado, inválido o expirado
- *       404:
- *         description: Alerta no encontrada
- *       500:
- *         description: Error en el servidor
- */
-router.delete('/:id/confirmations', authMiddleware, alertController.removeConfirmation);
+router.post('/:id/confirmations', alertController.confirmAlert);
 
 /**
  * @swagger
@@ -213,8 +167,6 @@ router.delete('/:id/confirmations', authMiddleware, alertController.removeConfir
  *     summary: Descartar una alerta
  *     description: Añade un descarte del usuario autenticado a la alerta.
  *     tags: [Alerts]
- *     security:
- *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -226,45 +178,13 @@ router.delete('/:id/confirmations', authMiddleware, alertController.removeConfir
  *       200:
  *         description: Alerta descartada correctamente
  *       400:
- *         description: Ya descartada o alerta inválida
- *       401:
- *         description: Token no proporcionado, inválido o expirado
+ *         description: Alerta inválida
  *       404:
  *         description: Alerta no encontrada
  *       500:
  *         description: Error en el servidor
  */
-router.post('/:id/discards', authMiddleware, alertController.discardAlert);
-
-/**
- * @swagger
- * /alerts/{id}/discards:
- *   delete:
- *     summary: Eliminar descarte de una alerta
- *     description: Elimina el descarte del usuario autenticado.
- *     tags: [Alerts]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Identificador de la alerta
- *     responses:
- *       200:
- *         description: Descarte eliminado correctamente
- *       400:
- *         description: El usuario no había descartado la alerta
- *       401:
- *         description: Token no proporcionado, inválido o expirado
- *       404:
- *         description: Alerta no encontrada
- *       500:
- *         description: Error en el servidor
- */
-router.delete('/:id/discards', authMiddleware, alertController.removeDiscard);
+router.post('/:id/discards', alertController.discardAlert);
 
 /**
  * @swagger

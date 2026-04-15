@@ -34,6 +34,8 @@ exports.createAlert = async (req, res) => {
             type: 'Point',
             coordinates: [coordinates.lon, coordinates.lat] // GeoJSON: [lng, lat]
          },
+         confirmations: 0,
+         discards: 0,
       });
 
       await alert.save();
@@ -163,31 +165,14 @@ exports.confirmAlert = async (req, res) => {
          });
       }
 
-      // Comprobar si ya confirmó
-      const alreadyConfirmed = alert.confirmations.some(
-         user => user.toString() === userId
-      );
-
-      if (alreadyConfirmed) {
-         return res.status(400).json({
-            message: 'Ya has confirmado esta alerta'
-         });
-      }
-
-      // Quitar de discards si estaba
-      alert.discards = alert.discards.filter(
-         user => user.toString() !== userId
-      );
-
-      // Añadir a confirmations
-      alert.confirmations.push(userId);
+      // Añadimos la confirmation
+      alert.confirmations += 1;
 
       await alert.save();
 
       res.status(200).json({
          message: 'Alerta confirmada',
-         confirmations: alert.confirmations.length,
-         confirmedByUser: true
+         confirmations: alert.confirmations,
       });
 
    } catch (error) {
@@ -201,7 +186,6 @@ exports.confirmAlert = async (req, res) => {
 exports.discardAlert = async (req, res) => {
    try {
       const { id } = req.params;
-      const userId = req.user.id;
 
       const alert = await Alert.findById(id);
 
@@ -218,121 +202,14 @@ exports.discardAlert = async (req, res) => {
          });
       }
 
-      // Comprobar si ya descartó
-      const alreadyDiscarded = alert.discards.some(
-         user => user.toString() === userId
-      );
-
-      if (alreadyDiscarded) {
-         return res.status(400).json({
-            message: 'Ya has descartado esta alerta'
-         });
-      }
-
-      // Quitar de confirmations si estaba
-      alert.confirmations = alert.confirmations.filter(
-         user => user.toString() !== userId
-      );
-
-      // Añadir a discards
-      alert.discards.push(userId);
+      // Añadir la discard
+      alert.discards += 1;
 
       await alert.save();
 
       res.status(200).json({
          message: 'Alerta descartada',
-         discards: alert.discards.length,
-         discardedByUser: true
-      });
-
-   } catch (error) {
-      console.error(error);
-      res.status(500).json({
-         message: 'Error en el servidor'
-      });
-   }
-};
-
-exports.removeConfirmation = async (req, res) => {
-   try {
-      const { id } = req.params;
-      const userId = req.user.id;
-
-      const alert = await Alert.findById(id);
-
-      if (!alert) {
-         return res.status(404).json({
-            message: 'Alerta no encontrada'
-         });
-      }
-
-      // Comprobar si había confirmado
-      const wasConfirmed = alert.confirmations.some(
-         user => user.toString() === userId
-      );
-
-      if (!wasConfirmed) {
-         return res.status(400).json({
-            message: 'No habías confirmado esta alerta'
-         });
-      }
-
-      // Eliminar confirmación
-      alert.confirmations = alert.confirmations.filter(
-         user => user.toString() !== userId
-      );
-
-      await alert.save();
-
-      res.status(200).json({
-         message: 'Confirmación eliminada',
-         confirmations: alert.confirmations.length,
-         confirmedByUser: false
-      });
-
-   } catch (error) {
-      console.error(error);
-      res.status(500).json({
-         message: 'Error en el servidor'
-      });
-   }
-};
-
-exports.removeDiscard = async (req, res) => {
-   try {
-      const { id } = req.params;
-      const userId = req.user.id;
-
-      const alert = await Alert.findById(id);
-
-      if (!alert) {
-         return res.status(404).json({
-            message: 'Alerta no encontrada'
-         });
-      }
-
-      // Comprobar si había descartado
-      const wasDiscarded = alert.discards.some(
-         user => user.toString() === userId
-      );
-
-      if (!wasDiscarded) {
-         return res.status(400).json({
-            message: 'No habías descartado esta alerta'
-         });
-      }
-
-      // Eliminar descarte
-      alert.discards = alert.discards.filter(
-         user => user.toString() !== userId
-      );
-
-      await alert.save();
-
-      res.status(200).json({
-         message: 'Descarte eliminado',
-         discards: alert.discards.length,
-         discardedByUser: false
+         discards: alert.discards,
       });
 
    } catch (error) {
@@ -378,7 +255,6 @@ exports.deleteAlert = async (req, res) => {
 exports.getAlertById = async (req, res) => {
    try {
       const { id } = req.params;
-      const userId = req.user?.id; // opcional si no hay auth
 
       const alert = await Alert.findById(id)
          .populate('confirmations', '_id')
@@ -390,25 +266,12 @@ exports.getAlertById = async (req, res) => {
          });
       }
 
-      // Comprobar estado del usuario actual
-      const confirmedByUser = alert.confirmations.some(
-         user => user._id.toString() === userId
-      );
-
-      const discardedByUser = alert.discards.some(
-         user => user._id.toString() === userId
-      );
-
       res.status(200).json({
          alert,
          stats: {
-            confirmations: alert.confirmations.length,
-            discards: alert.discards.length
+            confirmations: alert.confirmations,
+            discards: alert.discards,
          },
-         userInteraction: {
-            confirmedByUser,
-            discardedByUser
-         }
       });
 
    } catch (error) {
@@ -435,7 +298,6 @@ async function geocodeAddress(address) {
             }
          }
       );
-      console.log("RESPUESTA:", response.data);
 
       if (!response.data || response.data.length === 0) {
          return null;
