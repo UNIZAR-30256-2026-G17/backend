@@ -72,11 +72,11 @@ const options = {
                properties: {
                   description: {
                      type: 'string',
-                     example: 'Robo en la calle Mayor'
+                     example: 'Robo en un colegio'
                   },
                   address: {
                      type: 'string',
-                     example: 'Calle Mayor 10'
+                     example: '8611 2nd Ave, Silver Spring, MD 20910, Estados Unidos'
                   }
                }
             },

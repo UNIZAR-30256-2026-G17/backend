@@ -34,7 +34,6 @@ exports.createAlert = async (req, res) => {
             type: 'Point',
             coordinates: [coordinates.lon, coordinates.lat] // GeoJSON: [lng, lat]
          },
-         createdBy: req.user.id
       });
 
       await alert.save();
@@ -438,6 +437,7 @@ async function geocodeAddress(address) {
             }
          }
       );
+      console.log("RESPUESTA:", response.data);
 
       if (!response.data || response.data.length === 0) {
          return null;

@@ -35,7 +35,7 @@ const roleMiddleware = require('../middlewares/role.middleware');
  *       500:
  *         description: Error en el servidor
  */
-router.post('/', authMiddleware, alertController.createAlert);
+router.post('/', alertController.createAlert);
 
 /**
  * @swagger
@@ -78,7 +78,7 @@ router.post('/', authMiddleware, alertController.createAlert);
  *       500:
  *         description: Error en el servidor
  */
-router.get('/', authMiddleware, alertController.getAlerts);
+router.get('/', alertController.getAlerts);
 
 /**
  * @swagger

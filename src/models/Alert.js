@@ -32,11 +32,6 @@ const alertSchema = new mongoose.Schema({
       enum: ['pending', 'attended', 'deleted'],
       default: 'pending'
    },
-   createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-   },
    confirmations: [
       {
          type: mongoose.Schema.Types.ObjectId,
