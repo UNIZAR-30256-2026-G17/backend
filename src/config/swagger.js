@@ -115,6 +115,10 @@ const options = {
          {
             name: 'Crimes',
             description: 'Endpoints de delitos'
+         },
+         {
+            name: 'BeatsICs',
+            description: 'Endpoints de ICs por Beat'
          }
       ]
    },
