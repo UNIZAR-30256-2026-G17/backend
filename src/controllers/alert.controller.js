@@ -4,6 +4,7 @@
  */
 
 const Alert = require('../models/Alert');
+const axios = require('axios');
 
 exports.createAlert = async (req, res) => {
    try {
@@ -16,10 +17,25 @@ exports.createAlert = async (req, res) => {
          });
       }
 
+      // Geocodificar la dirección
+      const coordinates = await geocodeAddress(address);
+
+      if (!coordinates) {
+         return res.status(400).json({
+            message: 'No se pudo obtener coordenadas para esta dirección'
+         });
+      }
+
       const alert = new Alert({
          description,
          address,
-         createdBy: req.user.id
+         location: {
+            type: 'Point',
+            coordinates: [coordinates.lon, coordinates.lat] // GeoJSON: [lng, lat]
+         },
+         createdBy: req.user.id,
+         confirmations: [],
+         discards: [],
       });
 
       await alert.save();
@@ -421,5 +437,37 @@ exports.getAlertById = async (req, res) => {
       res.status(500).json({
          message: 'Error en el servidor'
       });
+   }
+};
+
+// Auxiliary function to obtain coordinates (lat, lon) given an adress
+async function geocodeAddress(address) {
+   try {
+      const response = await axios.get(
+         'https://nominatim.openstreetmap.org/search',
+         {
+            params: {
+               q: address,
+               format: 'json',
+               limit: 1,
+            },
+            headers: {
+               'User-Agent': 'alert-system-app/1.0',
+            }
+         }
+      );
+
+      if (!response.data || response.data.length === 0) {
+         return null;
+      }
+
+      return {
+         lat: parseFloat(response.data[0].lat),
+         lon: parseFloat(response.data[0].lon),
+      };
+
+   } catch (error) {
+      console.error('Geocoding error:', error.message);
+      return null;
    }
 };

@@ -82,11 +82,11 @@ const options = {
                properties: {
                   description: {
                      type: 'string',
-                     example: 'Robo en la calle Mayor'
+                     example: 'Robo en la carretera'
                   },
                   address: {
                      type: 'string',
-                     example: 'Calle Mayor 10'
+                     example: '9801 Centerway Rd, Montgomery Village, MD 20886, Estados Unidos'
                   }
                }
             },

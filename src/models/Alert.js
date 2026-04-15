@@ -16,6 +16,17 @@ const alertSchema = new mongoose.Schema({
       required: true,
       trim: true
    },
+   location: {
+      type: {
+         type: String,
+         enum: ['Point'],
+         default: 'Point'
+      },
+      coordinates: {
+         type: [Number], // [lng, lat]
+         required: false
+      }
+   },
    status: {
       type: String,
       enum: ['pending', 'attended', 'deleted'],
