@@ -208,6 +208,7 @@ exports.confirmAlert = async (req, res) => {
       res.status(200).json({
          message: 'Alerta confirmada',
          confirmations: alert.confirmations.length,
+         discards: alert.discards.length,
          confirmedByUser: true
       });
 
@@ -262,6 +263,7 @@ exports.discardAlert = async (req, res) => {
 
       res.status(200).json({
          message: 'Alerta descartada',
+         confirmations: alert.confirmations.length,
          discards: alert.discards.length,
          discardedByUser: true
       });
@@ -308,6 +310,7 @@ exports.removeConfirmation = async (req, res) => {
       res.status(200).json({
          message: 'Confirmación eliminada',
          confirmations: alert.confirmations.length,
+         discards: alert.discards.length,
          confirmedByUser: false
       });
 
@@ -352,6 +355,7 @@ exports.removeDiscard = async (req, res) => {
 
       res.status(200).json({
          message: 'Descarte eliminado',
+         confirmations: alert.confirmations.length,
          discards: alert.discards.length,
          discardedByUser: false
       });
