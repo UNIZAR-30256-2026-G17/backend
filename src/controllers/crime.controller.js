@@ -141,6 +141,43 @@ exports.getCrimes = async (req, res) => {
    }
 };
 
+exports.updateCrimeStatus = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const validStatuses = ['available', 'deleted'];
+
+      if (!status || !validStatuses.includes(status)) {
+         return res.status(400).json({
+            message: 'Status inválido. Valores permitidos: available, deleted'
+         });
+      }
+
+      const crime = await Crime.findByIdAndUpdate(
+         id,
+         { $set: { status } },
+         { new: true }
+      );
+
+      if (!crime) {
+         return res.status(404).json({
+            message: 'Delito no encontrado'
+         });
+      }
+
+      return res.status(200).json({
+         message: 'Estado del delito actualizado correctamente',
+         crime
+      });
+   } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
 exports.deleteCrime = async (req, res) => {
    try {
       const { id } = req.params;

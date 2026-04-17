@@ -16,6 +16,8 @@ const roleMiddleware = require('../middlewares/role.middleware');
  */
 router.get('/', crimeController.getCrimes);
 
+router.patch('/:id', authMiddleware, roleMiddleware('admin', 'police'), crimeController.updateCrimeStatus);
+
 router.delete('/:id', authMiddleware, roleMiddleware('admin', 'police'), crimeController.deleteCrime);
 
 module.exports = router;
