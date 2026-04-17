@@ -446,32 +446,53 @@ exports.getAlertById = async (req, res) => {
 
 // Auxiliary function to obtain coordinates (lat, lon) given an adress
 async function geocodeAddress(address) {
-   try {
-      const response = await axios.get(
-         'https://nominatim.openstreetmap.org/search',
-         {
-            params: {
-               q: address,
-               format: 'json',
-               limit: 1,
-            },
-            headers: {
-               'User-Agent': 'alert-system-app/1.0',
-            }
-         }
-      );
+   const variations = [
+      address.trim(), // Strategy 1: Full address
+   ];
 
-      if (!response.data || response.data.length === 0) {
-         return null;
-      }
+   // Strategy 2: Street + Zip Code (Very reliable in OSM if city boundaries are ambiguous)
+   const zipMatches = address.match(/\b\d{5}\b/g);
+   const zipCode = zipMatches ? zipMatches[zipMatches.length - 1] : null;
+   const parts = address.split(',');
+   const streetPart = parts[0].trim();
 
-      return {
-         lat: parseFloat(response.data[0].lat),
-         lon: parseFloat(response.data[0].lon),
-      };
-
-   } catch (error) {
-      console.error('Geocoding error:', error.message);
-      return null;
+   if (zipCode && streetPart && streetPart !== address.trim()) {
+      variations.push(`${streetPart}, ${zipCode}`);
    }
-};
+
+   // Strategy 3: Street + County (Context-specific)
+   if (!address.toLowerCase().includes('montgomery county') && streetPart) {
+      variations.push(`${streetPart}, Montgomery County, MD`);
+   }
+
+   for (const query of variations) {
+      try {
+         const response = await axios.get(
+            'https://nominatim.openstreetmap.org/search',
+            {
+               params: {
+                  q: query,
+                  format: 'json',
+                  limit: 1,
+                  addressdetails: 1,
+               },
+               headers: {
+                  'User-Agent': 'montgomery-app/1.0 (874055@unizar.es)',
+               }
+            }
+         );
+
+         if (response.data && response.data.length > 0) {
+            return {
+               lat: parseFloat(response.data[0].lat),
+               lon: parseFloat(response.data[0].lon),
+            };
+         }
+      } catch (error) {
+         console.error(`Geocoding error for query "${query}":`, error.message);
+         // Continue to next variation
+      }
+   }
+
+   return null;
+}
