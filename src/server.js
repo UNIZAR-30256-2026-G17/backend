@@ -1,26 +1,56 @@
 /**
  * Archivo: server.js
- * Descripción: arranque del servidor y conexión a MongoDB.
+ * Descripción: punto de entrada del backend. Carga la configuración,
+ * conecta con MongoDB y arranca el servidor HTTP.
  */
 
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-
-dotenv.config();
+const mongoose = require('mongoose');
 
 const app = require('./app');
+const logger = require('./config/logger');
 
+// Carga de variables de entorno
+dotenv.config();
+
+// Configuración básica del servidor
 const PORT = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
-mongoose
-   .connect(MONGODB_URI)
-   .then(() => {
-      console.log('Conectado a MongoDB');
+/**
+ * Inicia la conexión con MongoDB y, si se establece correctamente,
+ * arranca el servidor HTTP.
+ */
+const startServer = async () => {
+   try {
+      await mongoose.connect(MONGODB_URI);
+      logger.info('Conectado a MongoDB');
+
       app.listen(PORT, () => {
-         console.log(`Servidor en http://localhost:${PORT}`);
+         logger.info(`Servidor en http://localhost:${PORT}`);
       });
-   })
-   .catch((error) => {
-      console.error('Error conectando a MongoDB:', error.message);
+   } catch (error) {
+      logger.error('Error conectando a MongoDB', {
+         message: error.message,
+         stack: error.stack
+      });
+   }
+};
+
+// Registro de errores no controlados del proceso
+process.on('uncaughtException', (error) => {
+   logger.error('Uncaught Exception', {
+      message: error.message,
+      stack: error.stack
    });
+});
+
+process.on('unhandledRejection', (reason) => {
+   logger.error('Unhandled Rejection', {
+      reason: reason instanceof Error ? reason.message : String(reason),
+      stack: reason instanceof Error ? reason.stack : undefined
+   });
+});
+
+// Arranque del servidor
+startServer();

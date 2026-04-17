@@ -1,6 +1,7 @@
 /**
  * Archivo: swagger.js
- * Descripción: configuración global de Swagger/OpenAPI.
+ * Descripción: configuración global de Swagger/OpenAPI para la documentación
+ * interactiva del backend.
  */
 
 const swaggerJsDoc = require('swagger-jsdoc');
@@ -8,33 +9,40 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const options = {
    definition: {
       openapi: '3.0.0',
+
       info: {
          title: 'API Proyecto STW Grupo 17',
          version: '1.0.0',
          description: 'Documentación del backend del proyecto de Sistemas y Tecnologías Web'
       },
+
       servers: [
          {
             url: 'http://localhost:3000/api',
             description: 'Servidor local'
          }
       ],
+
       components: {
          securitySchemes: {
+            // Autenticación mediante token JWT enviado en la cabecera Authorization
             bearerAuth: {
                type: 'http',
                scheme: 'bearer',
-               bearerFormat: 'JWT'
+               bearerFormat: 'JWT',
+               description: 'Introduce el token JWT con el formato: Bearer <token>'
             }
          },
+
          schemas: {
+            // Credenciales de acceso de usuarios registrados
             LoginInput: {
                type: 'object',
                required: ['email', 'password', 'role'],
                properties: {
                   email: {
                      type: 'string',
-                     example: 'admin@test.com'
+                     example: 'admin_prueba_1@test.com'
                   },
                   password: {
                      type: 'string',
@@ -47,16 +55,19 @@ const options = {
                   }
                }
             },
+
+            // Entrada opcional para acceso anónimo
             LoginAnonymousInput: {
                type: 'object',
-               required: ['deviceId'],
                properties: {
                   deviceId: {
                      type: 'string',
-                     example: 'device-12345'
+                     example: 'dispositivo-demo-001'
                   }
                }
             },
+
+            // Datos de registro de un nuevo usuario
             RegisterInput: {
                type: 'object',
                required: ['email', 'password', 'role'],
@@ -77,10 +88,13 @@ const options = {
                   badge_number: {
                      type: 'integer',
                      nullable: true,
+                     description: 'Obligatorio si el rol es police. Debe ser null si el rol es admin.',
                      example: 1234
                   }
                }
             },
+
+            // Datos necesarios para crear una alerta
             AlertInput: {
                type: 'object',
                required: ['description', 'address'],
@@ -95,6 +109,8 @@ const options = {
                   }
                }
             },
+
+            // Estado permitido para una alerta
             AlertStatusInput: {
                type: 'object',
                required: ['status'],
@@ -105,9 +121,23 @@ const options = {
                      example: 'attended'
                   }
                }
+            },
+
+            // Estado permitido para un delito
+            CrimeStatusInput: {
+               type: 'object',
+               required: ['status'],
+               properties: {
+                  status: {
+                     type: 'string',
+                     enum: ['available', 'deleted'],
+                     example: 'deleted'
+                  }
+               }
             }
          }
       },
+
       tags: [
          {
             name: 'Auth',
@@ -122,15 +152,21 @@ const options = {
             description: 'Endpoints de delitos'
          },
          {
-            name: 'BeatsICs',
-            description: 'Endpoints de ICs por Beat'
+            name: 'ICBeat',
+            description: 'Endpoints de índices de criminalidad por beat'
          },
          {
-            name: 'DistrictsICs',
-            description: 'Endpoints de ICs por Distrito'
+            name: 'ICDistrict',
+            description: 'Endpoints de índices de criminalidad por distrito'
+         },
+         {
+            name: 'Users',
+            description: 'Endpoints de gestión de usuarios'
          }
       ]
    },
+
+   // Archivos donde Swagger buscará anotaciones @swagger
    apis: ['./src/routes/*.js']
 };
 

@@ -14,21 +14,27 @@ const authMiddleware = require('../middlewares/auth.middleware');
  * /auth/register:
  *   post:
  *     summary: Registrar usuario
- *     description: Crea un nuevo usuario con rol admin o police.
+ *     description: Crea un nuevo usuario con rol `admin` o `police`.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
+ *       description: Datos necesarios para registrar un usuario
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/RegisterInput'
+ *           example:
+ *             email: police1@test.com
+ *             password: "123456"
+ *             role: police
+ *             badge_number: 1234
  *     responses:
  *       201:
  *         description: Usuario creado correctamente
  *       400:
- *         description: Datos inválidos o usuario ya existente
+ *         description: Datos inválidos, email duplicado o badge_number ya existente
  *       500:
- *         description: Error en el servidor
+ *         description: Error interno del servidor
  */
 router.post('/register', authController.register);
 
@@ -37,21 +43,28 @@ router.post('/register', authController.register);
  * /auth/login:
  *   post:
  *     summary: Iniciar sesión
- *     description: Autentica a un usuario y devuelve un token JWT.
+ *     description: Autentica a un usuario registrado y devuelve un token JWT. Actualmente requiere `email`, `password` y `role`.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
+ *       description: Credenciales de acceso del usuario
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/LoginInput'
+ *           example:
+ *             email: admin_prueba_1@test.com
+ *             password: "123456"
+ *             role: admin
  *     responses:
  *       200:
  *         description: Login correcto
  *       400:
- *         description: Credenciales inválidas o datos faltantes
+ *         description: Credenciales inválidas o campos obligatorios ausentes
+ *       403:
+ *         description: El rol enviado no coincide con el del usuario
  *       500:
- *         description: Error en el servidor
+ *         description: Error interno del servidor
  */
 router.post('/login', authController.login);
 
@@ -60,21 +73,22 @@ router.post('/login', authController.login);
  * /auth/login/anonymous:
  *   post:
  *     summary: Iniciar sesión como usuario anónimo
- *     description: Devuelve un token JWT.
+ *     description: Genera un token JWT para un usuario anónimo. Si no se envía `deviceId`, el backend genera uno automáticamente.
  *     tags: [Auth]
  *     requestBody:
- *       required: true
+ *       required: false
+ *       description: Identificador opcional del dispositivo o cliente
  *       content:
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/LoginAnonymousInput'
+ *           example:
+ *             deviceId: dispositivo-demo-001
  *     responses:
  *       200:
  *         description: Login anónimo correcto
- *       400:
- *         description: Credenciales inválidas o datos faltantes
  *       500:
- *         description: Error en el servidor
+ *         description: Error interno del servidor
  */
 router.post('/login/anonymous', authController.anonymousLogin);
 
@@ -83,7 +97,7 @@ router.post('/login/anonymous', authController.anonymousLogin);
  * /auth/me:
  *   get:
  *     summary: Obtener usuario autenticado
- *     description: Devuelve la información del usuario autenticado a partir del token JWT.
+ *     description: Devuelve la información del usuario autenticado a partir del token JWT enviado en la cabecera Authorization.
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -95,7 +109,7 @@ router.post('/login/anonymous', authController.anonymousLogin);
  *       404:
  *         description: Usuario no encontrado
  *       500:
- *         description: Error en el servidor
+ *         description: Error interno del servidor
  */
 router.get('/me', authMiddleware, authController.me);
 
@@ -104,7 +118,7 @@ router.get('/me', authMiddleware, authController.me);
  * /auth/logout:
  *   post:
  *     summary: Cerrar sesión
- *     description: Valida el token y devuelve una respuesta de logout correcto. La eliminación del token se realiza en el cliente.
+ *     description: Valida el token JWT y devuelve una respuesta de cierre de sesión correcto. La eliminación efectiva del token se realiza en el cliente.
  *     tags: [Auth]
  *     security:
  *       - bearerAuth: []
@@ -114,7 +128,7 @@ router.get('/me', authMiddleware, authController.me);
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  *       500:
- *         description: Error en el servidor
+ *         description: Error interno del servidor
  */
 router.post('/logout', authMiddleware, authController.logout);
 

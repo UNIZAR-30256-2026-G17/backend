@@ -1,6 +1,6 @@
 /**
  * Archivo: beatIC.routes.js
- * Descripción: Rutas de ICs por Beat.
+ * Descripción: rutas de ICs por Beat.
  */
 
 const express = require('express');
@@ -13,28 +13,27 @@ const authMiddleware = require('../middlewares/auth.middleware');
  * @swagger
  * /ic_beat:
  *   get:
- *     summary: Obtener todas los ICs por Beat
- *     description: Devuelve la lista de ICs por Beat del sistema con filtros opcionales.
+ *     summary: Obtener ICs por beat
+ *     description: Devuelve la lista de índices de criminalidad (IC) agregados por beat. Permite seleccionar la escala temporal mediante el parámetro `time`. Si no se proporciona, se usa `day` por defecto.
  *     tags: [ICBeat]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: time
+ *         required: false
+ *         description: Escala temporal de los índices de criminalidad por beat
  *         schema:
  *           type: string
  *           enum: [day, month, year, three_year]
- *         required: false
- *         description: Filtrar por tiempo
+ *           example: day
  *     responses:
  *       200:
- *         description: Lista de ICs por Beat obtenida correctamente
- *       400:
- *         description: Parámetros inválidos
+ *         description: Lista de ICs por beat obtenida correctamente
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  *       500:
- *         description: Error en el servidor
+ *         description: Error interno del servidor
  */
 router.get('/', authMiddleware, beatICController.getBeatsICs);
 
