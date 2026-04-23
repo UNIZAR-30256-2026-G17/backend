@@ -22,7 +22,12 @@ const app = express();
 
 // Middlewares globales
 app.use(requestLogger);
-app.use(cors());
+
+// Solo se permiten peticiones desde el origen del frontend
+app.use(cors({
+   origin: process.env.FRONTEND_URL
+}));
+
 app.use(express.json());
 
 // Documentación interactiva de la API
