@@ -20,12 +20,16 @@ const userRoutes = require('./routes/user.routes');
 
 const app = express();
 
+const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8081';
+
 // Middlewares globales
 app.use(requestLogger);
 
 // Solo se permiten peticiones desde el origen del frontend
 app.use(cors({
-   origin: process.env.FRONTEND_URL
+   origin: frontendUrl,
+   methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+   allowedHeaders: ['authorization', 'content-type', 'token']
 }));
 
 app.use(express.json());

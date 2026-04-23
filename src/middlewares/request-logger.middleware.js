@@ -17,7 +17,10 @@ const requestLogger = (req, res, next) => {
          method: req.method,
          url: req.originalUrl,
          statusCode: res.statusCode,
-         durationMs
+         durationMs,
+         origin: req.headers.origin,
+         accessControlRequestMethod: req.headers['access-control-request-method'],
+         accessControlRequestHeaders: req.headers['access-control-request-headers']
       });
    });
 

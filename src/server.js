@@ -5,13 +5,12 @@
  */
 
 const dotenv = require('dotenv');
+dotenv.config();  // Carga de variables de entorno
+
 const mongoose = require('mongoose');
 
 const app = require('./app');
 const logger = require('./config/logger');
-
-// Carga de variables de entorno
-dotenv.config();
 
 // Configuración básica del servidor
 const PORT = process.env.PORT || 3000;
