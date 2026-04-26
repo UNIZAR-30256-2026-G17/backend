@@ -41,10 +41,10 @@
   },
   "jest": {
     "moduleNameMapper": {
-      "^uuid$": "<rootDir>/__tests__/mocks/uuid.js"
+      "^uuid$": "<rootDir>/test/mocks/uuid.js"
     },
     "testMatch": [
-      "**/__tests__/**/*.test.js"
+      "**/test/**/*.test.js"
     ]
   }
 }
