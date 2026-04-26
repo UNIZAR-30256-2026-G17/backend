@@ -41,20 +41,31 @@ Modo desarrollo (con nodemon):
 npm run dev
 ```
 
-Servidor disponible en:
+Servidor disponible (en desarrollo) en:
 
 ```text
 http://localhost:3000
 ```
 
+Servidor disponible (en producción) en:
+
+```text
+https://backend-9u99.onrender.com
+```
 ---
 
 # Documentación API (Swagger)
 
-Accede a la documentación interactiva en:
+Accede a la documentación interactiva (en desarrollo) en:
 
 ```text
 http://localhost:3000/api-docs
+```
+
+Accede a la documentación interactiva (en producción) en:
+
+```text
+https://backend-9u99.onrender.com/api-docs
 ```
 
 Permite:

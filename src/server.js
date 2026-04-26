@@ -26,7 +26,7 @@ const startServer = async () => {
       logger.info('Conectado a MongoDB');
 
       app.listen(PORT, () => {
-         logger.info(`Servidor en http://localhost:${PORT}`);
+         logger.info(`Servidor corriendo en ${process.env.BASE_URL}`);
       });
    } catch (error) {
       logger.error('Error conectando a MongoDB', {
