@@ -105,12 +105,173 @@ const roleMiddleware = require('../middlewares/role.middleware');
  *     responses:
  *       200:
  *         description: Lista de delitos obtenida correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               total: 127778
+ *               offset: 0
+ *               limit: 50
+ *               count: 2
+ *               crimes:
+ *                 - _id: 69c57ccd1c531b4015661dad
+ *                   incident_id: 201566183
+ *                   case_number: 260010033
+ *                   start_date: 2026-03-06T16:37
+ *                   nibrs_code: 23C
+ *                   victims: 1
+ *                   crimename1: Crime Against Property
+ *                   crimename2: Shoplifting
+ *                   district: WHEATON
+ *                   city: SILVER SPRING
+ *                   zip_code: 20902
+ *                   agency: MCPD
+ *                   beat: 4L2
+ *                   address_number: 11100
+ *                   address_street: VEIRS MILL
+ *                   street_type: RD
+ *                   latitude: 39.03756
+ *                   longitude: -77.0519
+ *                   status: available
+ *                 - _id: 69c57ccd1c531b4015661dc7
+ *                   incident_id: 201566071
+ *                   case_number: 260009897
+ *                   start_date: 2026-03-05T20:22
+ *                   nibrs_code: 90Z
+ *                   victims: 1
+ *                   crimename1: Crime Against Society
+ *                   crimename2: All Other Offenses
+ *                   district: ROCKVILLE
+ *                   city: ROCKVILLE
+ *                   zip_code: 20850
+ *                   agency: RCPD
+ *                   beat: 1A1
+ *                   address_number: 1
+ *                   address_street: MARCUS
+ *                   street_type: CT
+ *                   latitude: 39.07476
+ *                   longitude: -77.1628
+ *                   status: available
  *       400:
  *         description: Alguno de los parámetros de consulta es inválido
  *       500:
  *         description: Error interno del servidor
  */
 router.get('/', crimeController.getCrimes);
+
+/**
+ * @swagger
+ * /crimes/byCrimename1:
+ *   get:
+ *     summary: Obtener delitos agrupados por tipo general
+ *     description: >
+ *       Devuelve los delitos agrupados por `crimename1`, indicando el número total de víctimas
+ *       y el porcentaje que representa cada grupo respecto al total del rango consultado.
+ *       Los parámetros `from` y `to` son obligatorios, deben cumplir el formato `YYYY-MM-DD`,
+ *       `from` no puede ser posterior a `to` y no se permiten fechas futuras.
+ *     tags: [Crimes]
+ *     parameters:
+ *       - in: query
+ *         name: from
+ *         required: true
+ *         description: Fecha inicial del rango de búsqueda
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: 2026-04-22
+ *       - in: query
+ *         name: to
+ *         required: true
+ *         description: Fecha final del rango de búsqueda
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: 2026-04-22
+ *     responses:
+ *       200:
+ *         description: Delitos agrupados por tipo obtenidos correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               from: 2026-04-20
+ *               to: 2026-04-22
+ *               total_victims: 200
+ *               results:
+ *                 - crimename1: Crime Against Person
+ *                   num_victims: 170
+ *                   percentage: 85
+ *                 - crimename1: Crime Against Society
+ *                   num_victims: 13
+ *                   percentage: 6.5
+ *                 - crimename1: Crime Against Property
+ *                   num_victims: 17
+ *                   percentage: 8.5
+ *       400:
+ *         description: Parámetros de fecha ausentes, inválidos o incoherentes
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/byCrimename1', crimeController.getCrimesByCrimename1);
+
+/**
+ * @swagger
+ * /crimes/yesterday/byDistrict:
+ *   get:
+ *     summary: Obtener delitos de ayer agrupados por distrito
+ *     description: >
+ *       Devuelve el número de delitos ocurridos ayer agrupados por distrito.
+ *       Solo se devuelve información agregada, no el detalle individual de cada delito.
+ *     tags: [Crimes]
+ *     responses:
+ *       200:
+ *         description: Delitos agrupados por distrito obtenidos correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               date: 2026-04-22
+ *               total_crimes: 18
+ *               results:
+ *                 - district: TAKOMA PARK
+ *                   num_crimes: 13
+ *                 - district: MONTGOMERY VILLAGE
+ *                   num_crimes: 5
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/yesterday/byDistrict', crimeController.getYesterdayCrimesByDistrict);
+
+/**
+ * @swagger
+ * /crimes/yesterday/byHour:
+ *   get:
+ *     summary: Obtener delitos de ayer agrupados por hora
+ *     description: >
+ *       Devuelve el número de delitos ocurridos ayer agrupados por hora.
+ *       La respuesta incluye las 24 franjas horarias del día, aunque alguna tenga valor 0.
+ *       Solo se devuelve información agregada, no el detalle individual de cada delito.
+ *     tags: [Crimes]
+ *     responses:
+ *       200:
+ *         description: Delitos agrupados por hora obtenidos correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               date: 2026-04-22
+ *               total_crimes: 41
+ *               results:
+ *                 - hour: "00:00"
+ *                   num_crimes: 13
+ *                 - hour: "01:00"
+ *                   num_crimes: 5
+ *                 - hour: "02:00"
+ *                   num_crimes: 0
+ *                 - hour: "03:00"
+ *                   num_crimes: 2
+ *                 - hour: "23:00"
+ *                   num_crimes: 23
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.get('/yesterday/byHour', crimeController.getYesterdayCrimesByHour);
 
 /**
  * @swagger
@@ -143,6 +304,30 @@ router.get('/', crimeController.getCrimes);
  *     responses:
  *       200:
  *         description: Estado del delito actualizado correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Estado del delito actualizado correctamente
+ *               crime:
+ *                 _id: 69e1cc34fa02f60011036cb9
+ *                 incident_id: 999999002
+ *                 case_number: 999999002
+ *                 start_date: 2026-04-14T10:30
+ *                 nibrs_code: TEST
+ *                 victims: 0
+ *                 crimename1: Crime Against Society
+ *                 crimename2: Test Crime Patch
+ *                 district: ROCKVILLE
+ *                 city: ROCKVILLE
+ *                 zip_code: 20850
+ *                 agency: TEST
+ *                 beat: 1A1
+ *                 address_number: 2
+ *                 address_street: PATCH TEST STREET
+ *                 street_type: RD
+ *                 latitude: 39.0845
+ *                 longitude: -77.153
+ *                 status: deleted
  *       400:
  *         description: Status inválido
  *       401:
@@ -177,6 +362,10 @@ router.patch('/:id', authMiddleware, roleMiddleware('admin', 'police'), crimeCon
  *     responses:
  *       200:
  *         description: Delito eliminado definitivamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Delito eliminado definitivamente
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  *       403:

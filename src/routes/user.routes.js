@@ -75,6 +75,10 @@ router.get('/', authMiddleware, roleMiddleware('admin'), userController.getUsers
  *     responses:
  *       200:
  *         description: Usuario eliminado definitivamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Usuario eliminado definitivamente
  *       400:
  *         description: No se permite eliminar la propia cuenta
  *       401:

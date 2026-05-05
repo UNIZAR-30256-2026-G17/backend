@@ -31,6 +31,15 @@ const authMiddleware = require('../middlewares/auth.middleware');
  *     responses:
  *       201:
  *         description: Usuario creado correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Usuario creado correctamente
+ *               user:
+ *                 id: 69d53fc2f6b80f9859d5c099
+ *                 email: police1@test.com
+ *                 role: police
+ *                 badge_number: 1234
  *       400:
  *         description: Datos inválidos, email duplicado o badge_number ya existente
  *       500:
@@ -59,6 +68,11 @@ router.post('/register', authController.register);
  *     responses:
  *       200:
  *         description: Login correcto
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Login correcto
+ *               token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZDUzZjE5ZjZiODBmOTg1OWQ1YzA5NiIsImVtYWlsIjoiYWRtaW5fcHJ1ZWJhXzFAdGVzdC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzU2MDUwNTgsImV4cCI6MTc3NTYwODY1OH0.Pp96KT6aP9WiQLT9rF-_Q0Gxi6p9vmsVkgrzuNWkocg
  *       400:
  *         description: Credenciales inválidas o campos obligatorios ausentes
  *       403:
@@ -87,6 +101,14 @@ router.post('/login', authController.login);
  *     responses:
  *       200:
  *         description: Login anónimo correcto
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Login anónimo correcto
+ *               token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlZDRiZTA5LTc3MGYtNGY0ZS05ZDhmLWUyZjI2ZThhNTE4YiIsInJvbGUiOiJhbm9ueW1vdXMiLCJpYXQiOjE3NzY5MDAwMDAsImV4cCI6MTc3OTQ5MjAwMH0.exampletoken
+ *               user:
+ *                 id: 5ed4be09-770f-4f4e-9d8f-e2f26e8a518b
+ *                 role: anonymous
  *       500:
  *         description: Error interno del servidor
  */
@@ -104,6 +126,17 @@ router.post('/login/anonymous', authController.anonymousLogin);
  *     responses:
  *       200:
  *         description: Usuario autenticado obtenido correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               user:
+ *                 _id: 69d53f19f6b80f9859d5c096
+ *                 email: admin_prueba_1@test.com
+ *                 role: admin
+ *                 badge_number: null
+ *                 status: active
+ *                 createdAt: 2026-04-07T17:30:01.835Z
+ *                 updatedAt: 2026-04-07T17:30:01.835Z
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  *       404:
@@ -125,6 +158,10 @@ router.get('/me', authMiddleware, authController.me);
  *     responses:
  *       200:
  *         description: Logout correcto
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Logout correcto
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  *       500:

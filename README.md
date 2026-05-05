@@ -76,36 +76,6 @@ Permite:
 
 ---
 
-# Endpoints principales
-
-## Auth
-
-* POST `/api/auth/register`
-* POST `/api/auth/login`
-* GET `/api/auth/me`
-* POST `/api/auth/logout`
-
-## Alerts
-
-* POST `/api/alerts`
-* GET `/api/alerts`
-* GET `/api/alerts/{id}`
-* PATCH `/api/alerts/{id}`
-* DELETE `/api/alerts/{id}`
-
-### Interacciones
-
-* POST `/api/alerts/{id}/confirmations`
-* DELETE `/api/alerts/{id}/confirmations`
-* POST `/api/alerts/{id}/discards`
-* DELETE `/api/alerts/{id}/discards`
-
-## Crimes
-
-* GET `/api/crimes` *(pendiente)*
-
----
-
 # Estructura del proyecto
 
 ```bash

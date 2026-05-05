@@ -261,3 +261,268 @@ exports.deleteCrime = async (req, res) => {
       });
    }
 };
+
+/**
+ * Devuelve los delitos agrupados por crimename1 para un rango de fechas obligatorio.
+ * Para cada grupo se calcula el número total de víctimas y su porcentaje sobre el total.
+ */
+exports.getCrimesByCrimename1 = async (req, res) => {
+   try {
+      const { from, to } = req.query;
+
+      // El rango de fechas es obligatorio
+      if (!from || !to) {
+         return res.status(400).json({
+            message: 'Los parámetros from y to son obligatorios'
+         });
+      }
+
+      // Validación estricta del formato YYYY-MM-DD
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+      if (!dateRegex.test(from) || !dateRegex.test(to)) {
+         return res.status(400).json({
+            message: 'Las fechas deben tener el formato YYYY-MM-DD'
+         });
+      }
+
+      const fromDate = new Date(`${from}T00:00:00`);
+      const toDate = new Date(`${to}T00:00:00`);
+
+      // Validación de fechas reales
+      if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+         return res.status(400).json({
+            message: 'Las fechas introducidas no son válidas'
+         });
+      }
+
+      // La fecha inicial no puede ser posterior a la final
+      if (fromDate > toDate) {
+         return res.status(400).json({
+            message: 'El parámetro from no puede ser posterior a to'
+         });
+      }
+
+      // No se permiten fechas futuras
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (fromDate > today || toDate > today) {
+         return res.status(400).json({
+            message: 'No se permiten fechas futuras'
+         });
+      }
+
+      const start = `${from}T00:00`;
+      const end = `${to}T23:59`;
+
+      const groupedCrimes = await Crime.aggregate([
+         {
+            $match: {
+               start_date: {
+                  $gte: start,
+                  $lte: end
+               }
+            }
+         },
+         {
+            $group: {
+               _id: '$crimename1',
+               num_victims: { $sum: '$victims' }
+            }
+         },
+         {
+            $sort: {
+               num_victims: -1
+            }
+         }
+      ]);
+
+      const totalVictims = groupedCrimes.reduce(
+         (sum, item) => sum + item.num_victims,
+         0
+      );
+
+      const results = groupedCrimes.map((item) => ({
+         crimename1: item._id,
+         num_victims: item.num_victims,
+         percentage: totalVictims === 0
+            ? 0
+            : Number(((item.num_victims / totalVictims) * 100).toFixed(2))
+      }));
+
+      logger.info('Consulta de delitos agrupados por crimename1 realizada', {
+         from,
+         to,
+         groups: results.length,
+         totalVictims
+      });
+
+      return res.status(200).json({
+         from,
+         to,
+         total_victims: totalVictims,
+         results
+      });
+   } catch (error) {
+      logger.error('Error en getCrimesByCrimename1', {
+         message: error.message,
+         stack: error.stack,
+         query: req.query
+      });
+
+      return res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+/**
+ * Devuelve el número de delitos ocurridos ayer agrupados por distrito.
+ */
+exports.getYesterdayCrimesByDistrict = async (req, res) => {
+   try {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      const year = yesterday.getFullYear();
+      const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+      const day = String(yesterday.getDate()).padStart(2, '0');
+
+      const date = `${year}-${month}-${day}`;
+      const start = `${date}T00:00`;
+      const end = `${date}T23:59`;
+
+      const groupedCrimes = await Crime.aggregate([
+         {
+            $match: {
+               start_date: {
+                  $gte: start,
+                  $lte: end
+               }
+            }
+         },
+         {
+            $group: {
+               _id: '$district',
+               num_crimes: { $sum: 1 }
+            }
+         },
+         {
+            $sort: {
+               num_crimes: -1
+            }
+         }
+      ]);
+
+      const totalCrimes = groupedCrimes.reduce(
+         (sum, item) => sum + item.num_crimes,
+         0
+      );
+
+      const results = groupedCrimes.map((item) => ({
+         district: item._id,
+         num_crimes: item.num_crimes
+      }));
+
+      logger.info('Consulta de delitos de ayer agrupados por distrito realizada', {
+         date,
+         groups: results.length,
+         totalCrimes
+      });
+
+      return res.status(200).json({
+         date,
+         total_crimes: totalCrimes,
+         results
+      });
+   } catch (error) {
+      logger.error('Error en getYesterdayCrimesByDistrict', {
+         message: error.message,
+         stack: error.stack
+      });
+
+      return res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
+
+/**
+ * Devuelve el número de delitos ocurridos ayer agrupados por hora.
+ * La respuesta incluye las 24 horas del día, aunque alguna tenga valor 0.
+ */
+exports.getYesterdayCrimesByHour = async (req, res) => {
+   try {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      const year = yesterday.getFullYear();
+      const month = String(yesterday.getMonth() + 1).padStart(2, '0');
+      const day = String(yesterday.getDate()).padStart(2, '0');
+
+      const date = `${year}-${month}-${day}`;
+      const start = `${date}T00:00`;
+      const end = `${date}T23:59`;
+
+      const groupedCrimes = await Crime.aggregate([
+         {
+            $match: {
+               start_date: {
+                  $gte: start,
+                  $lte: end
+               }
+            }
+         },
+         {
+            $group: {
+               _id: { $substr: ['$start_date', 11, 2] },
+               num_crimes: { $sum: 1 }
+            }
+         },
+         {
+            $sort: {
+               _id: 1
+            }
+         }
+      ]);
+
+      // Construcción de una serie completa de 24 horas
+      const results = [];
+
+      for (let hour = 0; hour < 24; hour++) {
+         const hourString = String(hour).padStart(2, '0');
+         const found = groupedCrimes.find((item) => item._id === hourString);
+
+         results.push({
+            hour: `${hourString}:00`,
+            num_crimes: found ? found.num_crimes : 0
+         });
+      }
+
+      const totalCrimes = results.reduce(
+         (sum, item) => sum + item.num_crimes,
+         0
+      );
+
+      logger.info('Consulta de delitos de ayer agrupados por hora realizada', {
+         date,
+         totalCrimes
+      });
+
+      return res.status(200).json({
+         date,
+         total_crimes: totalCrimes,
+         results
+      });
+   } catch (error) {
+      logger.error('Error en getYesterdayCrimesByHour', {
+         message: error.message,
+         stack: error.stack
+      });
+
+      return res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};

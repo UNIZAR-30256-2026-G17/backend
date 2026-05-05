@@ -32,6 +32,25 @@ const roleMiddleware = require('../middlewares/role.middleware');
  *     responses:
  *       201:
  *         description: Alerta creada correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Alerta creada correctamente
+ *               alert:
+ *                 _id: 69ea601ea6544e1567527426
+ *                 description: Robo en la calle Mayor
+ *                 address: Calle Mayor 10, Madrid
+ *                 location:
+ *                   type: Point
+ *                   coordinates:
+ *                     - -3.70379
+ *                     - 40.41678
+ *                 status: pending
+ *                 createdBy: 5ed4be09-770f-4f4e-9d8f-e2f26e8a518b
+ *                 confirmations: []
+ *                 discards: []
+ *                 createdAt: 2026-04-23T18:08:30.860Z
+ *                 updatedAt: 2026-04-23T18:08:30.860Z
  *       400:
  *         description: Datos inválidos o dirección no geocodificable
  *       401:
@@ -77,6 +96,44 @@ router.post('/', authMiddleware, alertController.createAlert);
  *     responses:
  *       200:
  *         description: Lista de alertas obtenida correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               count: 2
+ *               alerts:
+ *                 - _id: 69d5a5dd3853aa44f430c5b3
+ *                   description: Robo en la calle Mayor
+ *                   address: Calle Mayor 10
+ *                   location:
+ *                     type: Point
+ *                     coordinates:
+ *                       - -3.70379
+ *                       - 40.41678
+ *                   status: pending
+ *                   createdBy: 69d53f19f6b80f9859d5c096
+ *                   confirmations:
+ *                     - 69d53fc2f6b80f9859d5c099
+ *                   discards: []
+ *                   createdAt: 2026-04-08T00:48:29.503Z
+ *                   updatedAt: 2026-04-08T00:48:29.503Z
+ *                   confirmedByMe: false
+ *                   discardedByMe: false
+ *                 - _id: 69ea601ea6544e1567527426
+ *                   description: Prueba Swagger
+ *                   address: 9801 Centerway Rd, Montgomery Village, MD 20886, Estados Unidos
+ *                   location:
+ *                     type: Point
+ *                     coordinates:
+ *                       - -77.1882
+ *                       - 39.1835
+ *                   status: attended
+ *                   createdBy: 5ed4be09-770f-4f4e-9d8f-e2f26e8a518b
+ *                   confirmations: []
+ *                   discards: []
+ *                   createdAt: 2026-04-23T18:08:30.860Z
+ *                   updatedAt: 2026-04-23T18:10:11.214Z
+ *                   confirmedByMe: false
+ *                   discardedByMe: false
  *       400:
  *         description: Parámetros de consulta inválidos
  *       401:
@@ -106,6 +163,31 @@ router.get('/', authMiddleware, alertController.getAlerts);
  *     responses:
  *       200:
  *         description: Alerta obtenida correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               alert:
+ *                 _id: 69d5a5dd3853aa44f430c5b3
+ *                 description: Robo en la calle Mayor
+ *                 address: Calle Mayor 10
+ *                 location:
+ *                   type: Point
+ *                   coordinates:
+ *                     - -3.70379
+ *                     - 40.41678
+ *                 status: pending
+ *                 createdBy: 69d53f19f6b80f9859d5c096
+ *                 confirmations:
+ *                   - _id: 69d53fc2f6b80f9859d5c099
+ *                 discards: []
+ *                 createdAt: 2026-04-08T00:48:29.503Z
+ *                 updatedAt: 2026-04-08T00:48:29.503Z
+ *               stats:
+ *                 confirmations: 1
+ *                 discards: 0
+ *               userInteraction:
+ *                 confirmedByUser: false
+ *                 discardedByUser: false
  *       401:
  *         description: Token no proporcionado, inválido o expirado
  *       404:
@@ -144,6 +226,26 @@ router.get('/:id', authMiddleware, alertController.getAlertById);
  *     responses:
  *       200:
  *         description: Estado actualizado correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Estado actualizado correctamente
+ *               alert:
+ *                 _id: 69d5a5dd3853aa44f430c5b3
+ *                 description: Robo en la calle Mayor
+ *                 address: Calle Mayor 10
+ *                 location:
+ *                   type: Point
+ *                   coordinates:
+ *                     - -3.70379
+ *                     - 40.41678
+ *                 status: attended
+ *                 createdBy: 69d53f19f6b80f9859d5c096
+ *                 confirmations:
+ *                   - 69d53fc2f6b80f9859d5c099
+ *                 discards: []
+ *                 createdAt: 2026-04-08T00:48:29.503Z
+ *                 updatedAt: 2026-04-08T01:26:50.272Z
  *       400:
  *         description: Estado inválido
  *       401:
@@ -177,6 +279,13 @@ router.patch('/:id', authMiddleware, roleMiddleware('admin', 'police'), alertCon
  *     responses:
  *       200:
  *         description: Alerta confirmada correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Alerta confirmada
+ *               confirmations: 3
+ *               discards: 1
+ *               confirmedByUser: true
  *       400:
  *         description: La alerta no se puede confirmar o el usuario ya la había confirmado
  *       401:
@@ -208,6 +317,13 @@ router.post('/:id/confirmations', authMiddleware, alertController.confirmAlert);
  *     responses:
  *       200:
  *         description: Confirmación eliminada correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Confirmación eliminada
+ *               confirmations: 2
+ *               discards: 1
+ *               confirmedByUser: false
  *       400:
  *         description: El usuario no había confirmado la alerta
  *       401:
@@ -239,6 +355,13 @@ router.delete('/:id/confirmations', authMiddleware, alertController.removeConfir
  *     responses:
  *       200:
  *         description: Alerta descartada correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Alerta descartada
+ *               confirmations: 1
+ *               discards: 2
+ *               discardedByUser: true
  *       400:
  *         description: La alerta no se puede descartar o el usuario ya la había descartado
  *       401:
@@ -270,6 +393,13 @@ router.post('/:id/discards', authMiddleware, alertController.discardAlert);
  *     responses:
  *       200:
  *         description: Descarte eliminado correctamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Descarte eliminado
+ *               confirmations: 1
+ *               discards: 1
+ *               discardedByUser: false
  *       400:
  *         description: El usuario no había descartado la alerta
  *       401:
@@ -301,6 +431,10 @@ router.delete('/:id/discards', authMiddleware, alertController.removeDiscard);
  *     responses:
  *       200:
  *         description: Alerta eliminada definitivamente
+ *         content:
+ *           application/json:
+ *             example:
+ *               message: Alerta eliminada definitivamente
  *       400:
  *         description: La alerta debe estar previamente en estado deleted
  *       401:
