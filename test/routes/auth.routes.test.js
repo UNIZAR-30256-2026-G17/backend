@@ -32,6 +32,11 @@ describe('Auth Endpoints', () => {
     role: 'admin'
   };
 
+  const adminLoginData = {
+    email: adminData.email,
+    password: adminData.password
+  };
+
   const policeData = {
     email: 'police@test.com',
     password: 'password123',
@@ -128,20 +133,25 @@ describe('Auth Endpoints', () => {
       await request(app).post('/api/auth/register').send(adminData);
     });
 
-    it('9. devuelve token con credenciales correctas', async () => {
+    it('9. devuelve token y usuario con credenciales correctas', async () => {
       const response = await request(app)
         .post('/api/auth/login')
-        .send(adminData);
+        .send(adminLoginData);
 
       expect(response.status).toBe(200);
       expect(response.body.message).toBe('Login correcto');
       expect(response.body).toHaveProperty('token');
+
+      expect(response.body.user).toHaveProperty('id');
+      expect(response.body.user.email).toBe(adminData.email);
+      expect(response.body.user.role).toBe('admin');
+      expect(response.body.user.badge_number).toBeNull();
     });
 
     it('10. rechaza usuario inexistente', async () => {
       const response = await request(app)
         .post('/api/auth/login')
-        .send({ email: 'fake@test.com', password: 'password123', role: 'admin' });
+        .send({ email: 'fake@test.com', password: 'password123' });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toBe('Credenciales inválidas');
@@ -150,19 +160,19 @@ describe('Auth Endpoints', () => {
     it('11. rechaza password incorrecta', async () => {
       const response = await request(app)
         .post('/api/auth/login')
-        .send({ email: adminData.email, password: 'wrongpassword', role: 'admin' });
+        .send({ email: adminData.email, password: 'wrongpassword' });
 
       expect(response.status).toBe(400);
       expect(response.body.message).toBe('Credenciales inválidas');
     });
 
-    it('12. rechaza role incorrecto', async () => {
+    it('12. rechaza campos obligatorios ausentes', async () => {
       const response = await request(app)
         .post('/api/auth/login')
-        .send({ email: adminData.email, password: adminData.password, role: 'police' });
+        .send({ email: adminData.email });
 
-      expect(response.status).toBe(403);
-      expect(response.body.message).toBe('No tienes permisos para acceder desde este login');
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Email y contraseña son obligatorios');
     });
   });
 
@@ -171,7 +181,7 @@ describe('Auth Endpoints', () => {
 
     beforeEach(async () => {
       await request(app).post('/api/auth/register').send(adminData);
-      const loginRes = await request(app).post('/api/auth/login').send(adminData);
+      const loginRes = await request(app).post('/api/auth/login').send(adminLoginData);
       token = loginRes.body.token;
     });
 
@@ -199,7 +209,7 @@ describe('Auth Endpoints', () => {
 
     beforeEach(async () => {
       await request(app).post('/api/auth/register').send(adminData);
-      const loginRes = await request(app).post('/api/auth/login').send(adminData);
+      const loginRes = await request(app).post('/api/auth/login').send(adminLoginData);
       token = loginRes.body.token;
     });
 
