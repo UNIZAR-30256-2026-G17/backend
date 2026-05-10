@@ -110,16 +110,16 @@ exports.register = async (req, res) => {
 };
 
 /**
- * Autentica a un usuario registrado y devuelve un token JWT.
+ * Autentica a un usuario registrado y devuelve un token JWT junto con su rol.
  */
 exports.login = async (req, res) => {
    try {
-      const { email, password, role } = req.body;
+      const { email, password } = req.body;
 
       // Validación de campos obligatorios
-      if (!email || !password || !role) {
+      if (!email || !password) {
          return res.status(400).json({
-            message: 'Email, contraseña y role son obligatorios'
+            message: 'Email y contraseña son obligatorios'
          });
       }
 
@@ -128,13 +128,6 @@ exports.login = async (req, res) => {
       if (!user) {
          return res.status(400).json({
             message: 'Credenciales inválidas'
-         });
-      }
-
-      // Verificación de que el rol enviado coincide con el rol almacenado
-      if (role && user.role !== role) {
-         return res.status(403).json({
-            message: 'No tienes permisos para acceder desde este login'
          });
       }
 
@@ -165,14 +158,19 @@ exports.login = async (req, res) => {
 
       res.status(200).json({
          message: 'Login correcto',
-         token
+         token,
+         user: {
+            id: user._id,
+            email: user.email,
+            role: user.role,
+            badge_number: user.badge_number
+         }
       });
    } catch (error) {
       logger.error('Error en login', {
          message: error.message,
          stack: error.stack,
-         email: req.body?.email,
-         role: req.body?.role
+         email: req.body?.email
       });
 
       res.status(500).json({

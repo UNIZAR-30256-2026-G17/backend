@@ -38,7 +38,7 @@ const options = {
             // Credenciales de acceso de usuarios registrados
             LoginInput: {
                type: 'object',
-               required: ['email', 'password', 'role'],
+               required: ['email', 'password'],
                properties: {
                   email: {
                      type: 'string',
@@ -47,11 +47,6 @@ const options = {
                   password: {
                      type: 'string',
                      example: '123456'
-                  },
-                  role: {
-                     type: 'string',
-                     enum: ['admin', 'police'],
-                     example: 'admin'
                   }
                }
             },

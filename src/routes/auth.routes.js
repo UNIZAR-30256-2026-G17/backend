@@ -52,7 +52,7 @@ router.post('/register', authController.register);
  * /auth/login:
  *   post:
  *     summary: Iniciar sesión
- *     description: Autentica a un usuario registrado y devuelve un token JWT. Actualmente requiere `email`, `password` y `role`.
+ *     description: Autentica a un usuario registrado y devuelve un token JWT junto con la información básica del usuario autenticado, incluyendo su rol.
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -64,7 +64,6 @@ router.post('/register', authController.register);
  *           example:
  *             email: admin_prueba_1@test.com
  *             password: "123456"
- *             role: admin
  *     responses:
  *       200:
  *         description: Login correcto
@@ -72,11 +71,14 @@ router.post('/register', authController.register);
  *           application/json:
  *             example:
  *               message: Login correcto
- *               token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZDUzZjE5ZjZiODBmOTg1OWQ1YzA5NiIsImVtYWlsIjoiYWRtaW5fcHJ1ZWJhXzFAdGVzdC5jb20iLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NzU2MDUwNTgsImV4cCI6MTc3NTYwODY1OH0.Pp96KT6aP9WiQLT9rF-_Q0Gxi6p9vmsVkgrzuNWkocg
+ *               token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.exampletoken
+ *               user:
+ *                 id: 69d53f19f6b80f9859d5c096
+ *                 email: admin_prueba_1@test.com
+ *                 role: admin
+ *                 badge_number: null
  *       400:
  *         description: Credenciales inválidas o campos obligatorios ausentes
- *       403:
- *         description: El rol enviado no coincide con el del usuario
  *       500:
  *         description: Error interno del servidor
  */
