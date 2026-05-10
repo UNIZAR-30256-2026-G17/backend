@@ -189,7 +189,7 @@ exports.updateCrimeStatus = async (req, res) => {
       const crime = await Crime.findByIdAndUpdate(
          id,
          { $set: { status } },
-         { new: true }
+         { returnDocument: 'after' }
       );
 
       if (!crime) {
@@ -343,13 +343,26 @@ exports.getCrimesByCrimename1 = async (req, res) => {
          0
       );
 
-      const results = groupedCrimes.map((item) => ({
-         crimename1: item._id,
-         num_victims: item.num_victims,
-         percentage: totalVictims === 0
-            ? 0
-            : Number(((item.num_victims / totalVictims) * 100).toFixed(2))
-      }));
+      // Se devuelven siempre los tres tipos generales de delito,
+      // aunque alguno no tenga datos en el rango consultado
+      const crimeTypes = [
+         'Crime Against Person',
+         'Crime Against Society',
+         'Crime Against Property'
+      ];
+
+      const results = crimeTypes.map((crimeType) => {
+         const found = groupedCrimes.find((item) => item._id === crimeType);
+         const numVictims = found ? found.num_victims : 0;
+
+         return {
+            crimename1: crimeType,
+            num_victims: numVictims,
+            percentage: totalVictims === 0
+               ? 0
+               : Number(((numVictims / totalVictims) * 100).toFixed(2))
+         };
+      });
 
       logger.info('Consulta de delitos agrupados por crimename1 realizada', {
          from,
@@ -420,10 +433,26 @@ exports.getYesterdayCrimesByDistrict = async (req, res) => {
          0
       );
 
-      const results = groupedCrimes.map((item) => ({
-         district: item._id,
-         num_crimes: item.num_crimes
-      }));
+      // Se devuelven siempre los distritos principales,
+      // aunque alguno no tenga delitos en la fecha consultada
+      const districts = [
+         'ROCKVILLE',
+         'SILVER SPRING',
+         'MONTGOMERY VILLAGE',
+         'GERMANTOWN',
+         'BETHESDA',
+         'TAKOMA PARK',
+         'WHEATON'
+      ];
+
+      const results = districts.map((district) => {
+         const found = groupedCrimes.find((item) => item._id === district);
+
+         return {
+            district,
+            num_crimes: found ? found.num_crimes : 0
+         };
+      });
 
       logger.info('Consulta de delitos de ayer agrupados por distrito realizada', {
          date,

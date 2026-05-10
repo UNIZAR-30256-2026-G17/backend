@@ -167,7 +167,9 @@ router.get('/', crimeController.getCrimes);
  *       Devuelve los delitos agrupados por `crimename1`, indicando el número total de víctimas
  *       y el porcentaje que representa cada grupo respecto al total del rango consultado.
  *       Los parámetros `from` y `to` son obligatorios, deben cumplir el formato `YYYY-MM-DD`,
- *       `from` no puede ser posterior a `to` y no se permiten fechas futuras.
+ *       `from` no puede ser posterior a `to` y no se permiten fechas futuras. 
+ *       La respuesta incluye siempre los tres tipos generales de delito, aunque alguno no tenga 
+ *       víctimas en el rango consultado, en cuyo caso se devuelve con valor 0.
  *     tags: [Crimes]
  *     parameters:
  *       - in: query
@@ -194,17 +196,17 @@ router.get('/', crimeController.getCrimes);
  *             example:
  *               from: 2026-04-20
  *               to: 2026-04-22
- *               total_victims: 200
+ *               total_victims: 187
  *               results:
  *                 - crimename1: Crime Against Person
  *                   num_victims: 170
- *                   percentage: 85
+ *                   percentage: 90.91
  *                 - crimename1: Crime Against Society
- *                   num_victims: 13
- *                   percentage: 6.5
+ *                   num_victims: 0
+ *                   percentage: 0
  *                 - crimename1: Crime Against Property
  *                   num_victims: 17
- *                   percentage: 8.5
+ *                   percentage: 9.09
  *       400:
  *         description: Parámetros de fecha ausentes, inválidos o incoherentes
  *       500:
@@ -220,6 +222,8 @@ router.get('/byCrimename1', crimeController.getCrimesByCrimename1);
  *     description: >
  *       Devuelve el número de delitos ocurridos ayer agrupados por distrito.
  *       Solo se devuelve información agregada, no el detalle individual de cada delito.
+ *       La respuesta incluye siempre los distritos esperados, aunque alguno no tenga delitos 
+ *       en la fecha consultada, en cuyo caso se devuelve con valor 0.
  *     tags: [Crimes]
  *     responses:
  *       200:
@@ -230,10 +234,20 @@ router.get('/byCrimename1', crimeController.getCrimesByCrimename1);
  *               date: 2026-04-22
  *               total_crimes: 18
  *               results:
- *                 - district: TAKOMA PARK
- *                   num_crimes: 13
+ *                 - district: ROCKVILLE
+ *                   num_crimes: 0
+ *                 - district: SILVER SPRING
+ *                   num_crimes: 4
  *                 - district: MONTGOMERY VILLAGE
  *                   num_crimes: 5
+ *                 - district: GERMANTOWN
+ *                   num_crimes: 0
+ *                 - district: BETHESDA
+ *                   num_crimes: 6
+ *                 - district: TAKOMA PARK
+ *                   num_crimes: 0
+ *                 - district: WHEATON
+ *                   num_crimes: 3
  *       500:
  *         description: Error interno del servidor
  */

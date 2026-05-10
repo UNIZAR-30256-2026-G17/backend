@@ -168,7 +168,7 @@ exports.updateAlertStatus = async (req, res) => {
       const alert = await Alert.findByIdAndUpdate(
          id,
          { status },
-         { new: true, runValidators: true }
+         { returnDocument: 'after', runValidators: true }
       );
 
       if (!alert) {
@@ -523,9 +523,7 @@ exports.getAlertById = async (req, res) => {
       const { id } = req.params;
       const userId = req.user?.id;
 
-      const alert = await Alert.findById(id)
-         .populate('confirmations', '_id')
-         .populate('discards', '_id');
+      const alert = await Alert.findById(id);
 
       if (!alert) {
          return res.status(404).json({
@@ -535,11 +533,11 @@ exports.getAlertById = async (req, res) => {
 
       // Comprobación de la interacción del usuario autenticado con la alerta
       const confirmedByUser = alert.confirmations.some(
-         (user) => user._id.toString() === userId
+         (user) => user.toString() === userId
       );
 
       const discardedByUser = alert.discards.some(
-         (user) => user._id.toString() === userId
+         (user) => user.toString() === userId
       );
 
       res.status(200).json({
