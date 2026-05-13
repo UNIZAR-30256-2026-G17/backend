@@ -1,7 +1,5 @@
 # Montgomery SafetyMap App
 
-[breve resumen]
-
 ## 1. URLs de acceso
 La aplicación está desplegada en un entorno cloud, permitiendo el acceso directo a sus distintos componentes sin necesidad de instalación local.
 
@@ -23,7 +21,13 @@ La aplicación está desplegada en un entorno cloud, permitiendo el acceso direc
 
 ## 3. Arquitectura
 
-[pegar diagrama]
+La aplicación sigue una arquitectura de **3 niveles (3-tier architecture)**, lo que garantiza una separación clara de responsabilidades y facilita el mantenimiento y escalabilidad del sistema:
+
+1.  **Nivel de Presentación (Frontend)**: Interfaz de usuario desarrollada con React Native y Expo, encargada de la visualización de mapas, estadísticas e interacción con el usuario.
+2.  **Nivel de Lógica de Negocio (Backend)**: API REST construida con Node.js y Express que procesa las peticiones, gestiona la seguridad (JWT) y ejecuta la lógica del servidor.
+3.  **Nivel de Datos (Base de Datos)**: Almacenamiento persistente basado en MongoDB Atlas, donde se gestionan las colecciones de delitos, usuarios, alertas y resultados del modelo de IA.
+
+![Arquitectura del sistema](./arquitectura.png)
 
 ## 4. Fuentes de datos
 
@@ -80,6 +84,7 @@ Para la implementación del frontend se han utilizado los siguientes módulos y 
 - **React Native Dotenv**: Utilizado para gestionar variables de entorno y separar configuraciones de desarrollo y producción.
 - **ESLint**: Herramienta de análisis estático utilizada para mantener la calidad y consistencia del código.
 - **Jest y React Testing Library**: Frameworks utilizados para realizar pruebas unitarias y de interfaz sobre los componentes del frontend.
+- **Playwright**: Herramienta utilizada para la ejecución de pruebas de extremo a extremo (E2E), permitiendo validar flujos completos de usuario en el navegador.
 
 ### 6.3. Enlace a la solución
 El frontend de la aplicación está desplegado en un entorno cloud, permitiendo el acceso directo a la interfaz de usuario desde cualquier navegador o dispositivo compatible.
@@ -103,12 +108,13 @@ Todo el proceso de entrenamiento, generación de predicciones y actualización d
 Más información del flujo de KNIME [aquí](https://docs.google.com/document/d/1K1Zw8jnaz5YiJaAUpngNs-2xOC3YSdumcmYzIkKd_3E/edit?usp=sharing).
 
 ## 8. Validación y pruebas
-[minimo 2 E2E en frontend]
 
 ### 8.1. Pruebas manuales
 Se han realizado pruebas manuales exploratorias tanto en el backend como en el frontend con el objetivo de verificar el correcto funcionamiento general de la aplicación, la coherencia de los datos y la correcta interacción entre las distintas partes del sistema (API, base de datos e interfaz de usuario). Estas pruebas permitieron detectar y corregir posibles errores en fases tempranas del desarrollo.
 
 ### 8.2. Pruebas automáticas
+
+#### Backend
 El backend de la aplicación ha sido validado mediante un conjunto de pruebas automatizadas desarrolladas con **Jest** y **Supertest**. Se han implementado pruebas unitarias e de integración que verifican el comportamiento de las principales rutas del sistema, la autenticación de usuarios, la gestión de roles, el registro de solicitudes y el acceso a los datos de criminalidad.
 
 Los resultados obtenidos muestran una ejecución completa y satisfactoria de las pruebas, con:
@@ -120,9 +126,21 @@ Los resultados obtenidos muestran una ejecución completa y satisfactoria de las
 - **Cobertura de funciones:** 92.59%
 - **Cobertura de líneas:** 87.76%
 
-Las pruebas automáticas del backend se ejecutan mediante el siguiente comando:
-```
+Las pruebas automáticas del backend se ejecutan mediante:
+```bash
 npm run test:coverage
+```
+
+#### Frontend (E2E)
+Para el frontend se han implementado pruebas de extremo a extremo (**E2E**) utilizando **Playwright**. Estas pruebas simulan la interacción real de un usuario con la aplicación en un navegador web, garantizando que los flujos críticos de negocio funcionen correctamente en un entorno real.
+
+Se han desarrollado los siguientes escenarios de prueba:
+- **Flujo de Registro (`register.spec.js`)**: Verifica el proceso de creación de una cuenta para un agente de policía, la navegación desde la landing page y el inicio de sesión automático tras el éxito.
+- **Estadísticas de Visitante (`stats.spec.js`)**: Valida que los ciudadanos pueden consultar las estadísticas de criminalidad y que los filtros temporales (Último mes vs. Último año) actualizan los datos de forma dinámica.
+
+Las pruebas E2E del frontend se ejecutan mediante:
+```bash
+npm run test:e2e
 ```
 
 ## 9. Mejoras implementadas
@@ -157,8 +175,39 @@ npm run lint
 ```
 El resultado de su ejecución muestra que el proyecto no presenta errores ni advertencias, con 0 warnings y 0 errors.
 
+
+### 9.3. Integración y Despliegue Continuo (CI/CD)
+
+La aplicación utiliza un flujo avanzado de **Integración y Despliegue Continuo (CI/CD)** para garantizar la estabilidad del sistema y automatizar el ciclo de vida del software.
+
+#### GitHub Actions (CI)
+Tanto el repositorio de backend como el de frontend cuentan con flujos de trabajo automatizados mediante **GitHub Actions** (`ci.yml`). Cada vez que se realiza un *push* o se abre un *pull request* a la rama principal (`main`), se disparan las siguientes tareas:
+- **Backend CI**: Instalación de dependencias y ejecución de la suite completa de pruebas unitarias e integración con Jest.
+- **Frontend CI**: Instalación de dependencias, ejecución de pruebas de componentes y compilación (*build*) de la versión web para asegurar que no hay errores de transpilación.
+
+#### Despliegue en Render (CD)
+El despliegue de la aplicación está automatizado mediante la plataforma **Render**. Para asegurar la máxima fiabilidad, se ha configurado de la siguiente manera:
+- **Despliegue condicional**: Render está conectado a los repositorios de GitHub, pero el despliegue automático (*Auto-deploy*) está sincronizado con el estado del CI. 
+- **Validación previa**: Solo si todas las pruebas automatizadas de GitHub Actions finalizan con éxito (estado *Green*), Render procede a descargar el nuevo código y actualizar los servicios en la nube. Esto evita que errores de código o regresiones lleguen al entorno de producción.
+
+
 ## 10. Valoración global
 
+El desarrollo de **Montgomery SafetyMap** ha concluido con éxito, logrando integrar de manera cohesiva tecnologías de vanguardia en el ámbito del desarrollo web, móvil y la ciencia de datos. La aplicación no solo cumple con los requisitos funcionales establecidos, sino que ofrece una solución tecnológica avanzada para un problema social crítico: la seguridad ciudadana.
+
+Los puntos clave que definen el éxito de este proyecto son:
+
+1.  **Integración Tecnológica**: Se ha conseguido una comunicación fluida entre un backend robusto en Node.js, una base de datos NoSQL escalable (MongoDB Atlas) y un frontend multiplataforma desarrollado con React Native y Expo. La arquitectura permite una experiencia de usuario ágil y reactiva tanto en dispositivos móviles como en navegadores.
+2.  **Valor Añadido mediante IA**: La implementación de modelos predictivos mediante Random Forest ha permitido transformar datos históricos estáticos en información dinámica y accionable. El Índice de Criminalidad (IC) proporciona una capa de inteligencia que diferencia a esta plataforma de un simple mapa de incidentes.
+3.  **Calidad y Mantenibilidad**: El proyecto destaca por su compromiso con las buenas prácticas de ingeniería de software. La cobertura de tests superior al 75% (alcanzando más del 85% en sentencias) en el backend, la implementación de pruebas E2E con Playwright en el frontend y el uso de análisis estático (ESLint) garantizan un código limpio, seguro y fácil de mantener a largo plazo.
+4.  **Enfoque en el Usuario**: Se ha diseñado una interfaz moderna y accesible (basada en Material Design), adaptada a las necesidades específicas de tres perfiles de usuario distintos: ciudadanos, policías y administradores, asegurando que cada uno tenga las herramientas necesarias para cumplir su rol en el ecosistema de seguridad.
+
+En conclusión, Montgomery SafetyMap representa una herramienta potente para la democratización de los datos de seguridad pública, fomentando la colaboración entre la comunidad y las fuerzas del orden mediante la transparencia y la tecnología.
 
 ## 11. Futuras mejoras
 
+El proyecto Montgomery SafetyMap ha sentado las bases de una plataforma robusta para la seguridad ciudadana, pero existen diversas líneas de evolución para potenciar su impacto:
+
+- **Sistema de Notificaciones Push**: Implementar un servicio de notificaciones en tiempo real para que los ciudadanos reciban alertas inmediatas cuando se reporte un incidente de alta gravedad en su beat actual o en sus zonas de interés guardadas.
+- **Modo Offline y Sincronización**: Optimizar la aplicación para permitir la consulta del mapa de calor y las estadísticas básicas en situaciones de baja conectividad, sincronizando los datos localmente mediante *service workers* o bases de datos locales.
+- **Ampliación del Modelo de IA**: Evolucionar el modelo de predicción actual incluyendo variables exógenas como el calendario de eventos locales, condiciones meteorológicas o datos socioeconómicos, lo que permitiría aumentar la precisión del Índice de Criminalidad (IC).
