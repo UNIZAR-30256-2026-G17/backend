@@ -216,22 +216,41 @@ router.get('/byCrimename1', crimeController.getCrimesByCrimename1);
 
 /**
  * @swagger
- * /crimes/yesterday/byDistrict:
+ * /crimes/byDistrict:
  *   get:
- *     summary: Obtener delitos de ayer agrupados por distrito
+ *     summary: Obtener delitos agrupados por distrito en un rango de fechas
  *     description: >
- *       Devuelve el número de delitos ocurridos ayer agrupados por distrito.
+ *       Devuelve el número de delitos ocurridos en un rango de fechas específico, agrupados por distrito.
  *       Solo se devuelve información agregada, no el detalle individual de cada delito.
- *       La respuesta incluye siempre los distritos esperados, aunque alguno no tenga delitos 
- *       en la fecha consultada, en cuyo caso se devuelve con valor 0.
+ *       La respuesta incluye siempre los distritos principales, aunque alguno no tenga delitos 
+ *       en el rango consultado, en cuyo caso se devuelve con valor 0.
+ *       Los parámetros `from` y `to` son obligatorios y deben cumplir el formato `YYYY-MM-DD`.
  *     tags: [Crimes]
+ *     parameters:
+ *       - in: query
+ *         name: from
+ *         required: true
+ *         description: Fecha inicial del rango de búsqueda
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: 2026-04-20
+ *       - in: query
+ *         name: to
+ *         required: true
+ *         description: Fecha final del rango de búsqueda
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: 2026-04-22
  *     responses:
  *       200:
  *         description: Delitos agrupados por distrito obtenidos correctamente
  *         content:
  *           application/json:
  *             example:
- *               date: 2026-04-22
+ *               from: 2026-04-20
+ *               to: 2026-04-22
  *               total_crimes: 18
  *               results:
  *                 - district: ROCKVILLE
@@ -248,10 +267,12 @@ router.get('/byCrimename1', crimeController.getCrimesByCrimename1);
  *                   num_crimes: 0
  *                 - district: WHEATON
  *                   num_crimes: 3
+ *       400:
+ *         description: Parámetros de fecha ausentes, inválidos o incoherentes
  *       500:
  *         description: Error interno del servidor
- */
-router.get('/yesterday/byDistrict', crimeController.getYesterdayCrimesByDistrict);
+ * */
+router.get('/byDistrict', crimeController.getCrimesByDistrict);
 
 /**
  * @swagger

@@ -391,20 +391,57 @@ exports.getCrimesByCrimename1 = async (req, res) => {
 };
 
 /**
- * Devuelve el número de delitos ocurridos ayer agrupados por distrito.
+ * Devuelve el número de delitos ocurridos en un rango de fechas, agrupados por distrito.
  */
-exports.getYesterdayCrimesByDistrict = async (req, res) => {
+exports.getCrimesByDistrict = async (req, res) => {
    try {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
+      const { from, to } = req.query;
 
-      const year = yesterday.getFullYear();
-      const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-      const day = String(yesterday.getDate()).padStart(2, '0');
+      // El rango de fechas es obligatorio
+      if (!from || !to) {
+         return res.status(400).json({
+            message: 'Los parámetros from y to son obligatorios'
+         });
+      }
 
-      const date = `${year}-${month}-${day}`;
-      const start = `${date}T00:00`;
-      const end = `${date}T23:59`;
+      // Validación estricta del formato YYYY-MM-DD
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+      if (!dateRegex.test(from) || !dateRegex.test(to)) {
+         return res.status(400).json({
+            message: 'Las fechas deben tener el formato YYYY-MM-DD'
+         });
+      }
+
+      const fromDate = new Date(`${from}T00:00:00`);
+      const toDate = new Date(`${to}T00:00:00`);
+
+      // Validación de fechas reales
+      if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime())) {
+         return res.status(400).json({
+            message: 'Las fechas introducidas no son válidas'
+         });
+      }
+
+      // La fecha inicial no puede ser posterior a la final
+      if (fromDate > toDate) {
+         return res.status(400).json({
+            message: 'El parámetro from no puede ser posterior a to'
+         });
+      }
+
+      // No se permiten fechas futuras
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (fromDate > today || toDate > today) {
+         return res.status(400).json({
+            message: 'No se permiten fechas futuras'
+         });
+      }
+
+      const start = `${from}T00:00`;
+      const end = `${to}T23:59`;
 
       const groupedCrimes = await Crime.aggregate([
          {
@@ -434,7 +471,7 @@ exports.getYesterdayCrimesByDistrict = async (req, res) => {
       );
 
       // Se devuelven siempre los distritos principales,
-      // aunque alguno no tenga delitos en la fecha consultada
+      // aunque alguno no tenga delitos en el rango consultado
       const districts = [
          'ROCKVILLE',
          'SILVER SPRING',
@@ -454,21 +491,24 @@ exports.getYesterdayCrimesByDistrict = async (req, res) => {
          };
       });
 
-      logger.info('Consulta de delitos de ayer agrupados por distrito realizada', {
-         date,
+      logger.info('Consulta de delitos agrupados por distrito realizada', {
+         from,
+         to,
          groups: results.length,
          totalCrimes
       });
 
       return res.status(200).json({
-         date,
+         from,
+         to,
          total_crimes: totalCrimes,
          results
       });
    } catch (error) {
-      logger.error('Error en getYesterdayCrimesByDistrict', {
+      logger.error('Error en getCrimesByDistrict', {
          message: error.message,
-         stack: error.stack
+         stack: error.stack,
+         query: req.query
       });
 
       return res.status(500).json({
