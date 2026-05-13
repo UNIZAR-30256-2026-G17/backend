@@ -215,15 +215,12 @@ describe('Crime Endpoints', () => {
     });
   });
 
-  describe('GET /api/crimes/yesterday/byDistrict', () => {
+  describe('GET /api/crimes/byDistrict', () => {
     it('1. Devuelve agrupación por district', async () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const isoYesterday = yesterday.toISOString();
+      const today = new Date().toISOString().split('T')[0];
+      await Crime.create(createDummyCrime({ district: 'BETHESDA', start_date: `${today}T12:00` }));
 
-      await Crime.create(createDummyCrime({ district: 'BETHESDA', start_date: isoYesterday }));
-
-      const response = await request(app).get('/api/crimes/yesterday/byDistrict');
+      const response = await request(app).get(`/api/crimes/byDistrict?from=${today}&to=${today}`);
       expect(response.status).toBe(200);
 
       const bethesda = response.body.results.find(r => r.district === 'BETHESDA');
@@ -231,7 +228,8 @@ describe('Crime Endpoints', () => {
     });
 
     it('2. Devuelve siempre los distritos esperados, aunque alguno tenga num_crimes 0', async () => {
-      const response = await request(app).get('/api/crimes/yesterday/byDistrict');
+      const today = new Date().toISOString().split('T')[0];
+      const response = await request(app).get(`/api/crimes/byDistrict?from=${today}&to=${today}`);
       expect(response.status).toBe(200);
       expect(response.body.results.length).toBe(7);
 
@@ -240,28 +238,30 @@ describe('Crime Endpoints', () => {
       expect(districts).toContain('ROCKVILLE');
     });
 
-    it('3. Devuelve date, total_crimes y results', async () => {
-      const response = await request(app).get('/api/crimes/yesterday/byDistrict');
+    it('3. Devuelve from, to, total_crimes y results', async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await request(app).get(`/api/crimes/byDistrict?from=${today}&to=${today}`);
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('date');
+      expect(response.body).toHaveProperty('from');
+      expect(response.body).toHaveProperty('to');
       expect(response.body).toHaveProperty('total_crimes');
       expect(response.body).toHaveProperty('results');
     });
+
+    it('4. Rechaza si falta from o to', async () => {
+      const response = await request(app).get('/api/crimes/byDistrict?from=2023-10-01');
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Los parámetros from y to son obligatorios');
+    });
   });
 
-  describe('GET /api/crimes/yesterday/byHour', () => {
+  describe('GET /api/crimes/byHour', () => {
     it('1. Devuelve agrupación por hora', async () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      const year = yesterday.getFullYear();
-      const month = String(yesterday.getMonth() + 1).padStart(2, '0');
-      const day = String(yesterday.getDate()).padStart(2, '0');
-
-      const start_date = `${year}-${month}-${day}T14:30:00`;
+      const today = new Date().toISOString().split('T')[0];
+      const start_date = `${today}T14:30:00`;
       await Crime.create(createDummyCrime({ start_date }));
 
-      const response = await request(app).get('/api/crimes/yesterday/byHour');
+      const response = await request(app).get(`/api/crimes/byHour?from=${today}&to=${today}`);
       expect(response.status).toBe(200);
 
       const hour14 = response.body.results.find(r => r.hour === '14:00');
@@ -269,23 +269,33 @@ describe('Crime Endpoints', () => {
     });
 
     it('2. Devuelve siempre las 24 horas', async () => {
-      const response = await request(app).get('/api/crimes/yesterday/byHour');
+      const today = new Date().toISOString().split('T')[0];
+      const response = await request(app).get(`/api/crimes/byHour?from=${today}&to=${today}`);
       expect(response.status).toBe(200);
       expect(response.body.results.length).toBe(24);
     });
 
     it('3. Devuelve 0 en horas sin delitos', async () => {
-      const response = await request(app).get('/api/crimes/yesterday/byHour');
+      const today = new Date().toISOString().split('T')[0];
+      const response = await request(app).get(`/api/crimes/byHour?from=${today}&to=${today}`);
       const hour00 = response.body.results.find(r => r.hour === '00:00');
       expect(hour00.num_crimes).toBe(0);
     });
 
-    it('4. Devuelve date, total_crimes y results', async () => {
-      const response = await request(app).get('/api/crimes/yesterday/byHour');
+    it('4. Devuelve from, to, total_crimes y results', async () => {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await request(app).get(`/api/crimes/byHour?from=${today}&to=${today}`);
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('date');
+      expect(response.body).toHaveProperty('from');
+      expect(response.body).toHaveProperty('to');
       expect(response.body).toHaveProperty('total_crimes');
       expect(response.body).toHaveProperty('results');
+    });
+
+    it('5. Rechaza si falta from o to', async () => {
+      const response = await request(app).get('/api/crimes/byHour?from=2023-10-01');
+      expect(response.status).toBe(400);
+      expect(response.body.message).toBe('Los parámetros from y to son obligatorios');
     });
   });
 
