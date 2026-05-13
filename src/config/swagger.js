@@ -129,7 +129,20 @@ const options = {
                      example: 'deleted'
                   }
                }
-            }
+            },
+
+            // Estado permitido para una alerta
+            UserStatusInput: {
+               type: 'object',
+               required: ['status'],
+               properties: {
+                  status: {
+                     type: 'string',
+                     enum: ['active', 'blocked'],
+                     example: 'blocked'
+                  }
+               }
+            },
          }
       },
 

@@ -86,3 +86,57 @@ exports.deleteUser = async (req, res) => {
       });
    }
 };
+
+/**
+ * Actualiza el estado de una usuario existente.
+ */
+exports.updateUserStatus = async (req, res) => {
+   try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      const validStatus = ['active', 'blocked'];
+
+      // Validación del nuevo estado
+      if (!status || !validStatus.includes(status)) {
+         return res.status(400).json({
+            message: 'Status inválido. Valores permitidos: active, blocked'
+         });
+      }
+
+      const user = await User.findByIdAndUpdate(
+         id,
+         { status },
+         { returnDocument: 'after', runValidators: true }
+      );
+
+      if (!user) {
+         return res.status(404).json({
+            message: 'Usuario no encontrado'
+         });
+      }
+
+      logger.info('Estado del usuario actualizado', {
+         userId: id,
+         newStatus: status,
+         performedBy: req.user?.id
+      });
+
+      res.status(200).json({
+         message: 'Estado actualizado correctamente',
+         user
+      });
+   } catch (error) {
+      logger.error('Error en updateUserStatus', {
+         message: error.message,
+         stack: error.stack,
+         userId: req.params?.id,
+         requestedStatus: req.body?.status,
+         performedBy: req.user?.id
+      });
+
+      res.status(500).json({
+         message: 'Error en el servidor'
+      });
+   }
+};
