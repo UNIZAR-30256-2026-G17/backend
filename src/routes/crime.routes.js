@@ -276,21 +276,40 @@ router.get('/byDistrict', crimeController.getCrimesByDistrict);
 
 /**
  * @swagger
- * /crimes/yesterday/byHour:
+ * /crimes/byHour:
  *   get:
- *     summary: Obtener delitos de ayer agrupados por hora
+ *     summary: Obtener delitos agrupados por hora en un rango de fechas
  *     description: >
- *       Devuelve el número de delitos ocurridos ayer agrupados por hora.
+ *       Devuelve el número de delitos ocurridos en un rango de fechas específico, agrupados por hora.
  *       La respuesta incluye las 24 franjas horarias del día, aunque alguna tenga valor 0.
  *       Solo se devuelve información agregada, no el detalle individual de cada delito.
+ *       Los parámetros `from` y `to` son obligatorios y deben cumplir el formato `YYYY-MM-DD`.
  *     tags: [Crimes]
+ *     parameters:
+ *       - in: query
+ *         name: from
+ *         required: true
+ *         description: Fecha inicial del rango de búsqueda
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: 2026-04-20
+ *       - in: query
+ *         name: to
+ *         required: true
+ *         description: Fecha final del rango de búsqueda
+ *         schema:
+ *           type: string
+ *           format: date
+ *           example: 2026-04-22
  *     responses:
  *       200:
  *         description: Delitos agrupados por hora obtenidos correctamente
  *         content:
  *           application/json:
  *             example:
- *               date: 2026-04-22
+ *               from: 2026-04-20
+ *               to: 2026-04-22
  *               total_crimes: 41
  *               results:
  *                 - hour: "00:00"
@@ -299,14 +318,12 @@ router.get('/byDistrict', crimeController.getCrimesByDistrict);
  *                   num_crimes: 5
  *                 - hour: "02:00"
  *                   num_crimes: 0
- *                 - hour: "03:00"
- *                   num_crimes: 2
- *                 - hour: "23:00"
- *                   num_crimes: 23
+ *       400:
+ *         description: Parámetros de fecha ausentes, inválidos o incoherentes
  *       500:
  *         description: Error interno del servidor
- */
-router.get('/yesterday/byHour', crimeController.getYesterdayCrimesByHour);
+ * */
+router.get('/byHour', crimeController.getCrimesByHour);
 
 /**
  * @swagger
